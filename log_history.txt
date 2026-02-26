@@ -1,0 +1,16 @@
+a721de9 Add layout utility items: Separators, Skeletons, and Scroll-Area
+b8b8ce3 Add complex UI elements: Tabs and Sheet
+2b628a1 Add form handling: Form, Select, and Textarea
+1dc2e16 Add interactive UI: Dialogs, Popovers, and Tooltips
+5f94cf8 Add data display UI: Cards, Avatars, and Tables
+b9cb5a7 Add feedback UI: Alerts, Badges, and Progress
+9f0a13e Add primitive UI: Button, Input, and Label
+3901979 Initialize Shadcn/UI configuration and utils.ts
+e5c5ef6 Initialize Inngest for background event processing
+ad5d63c Configure Authentication Middleware and Provider
+452a7b7 Define TypeScript interfaces and shared types
+630973b Define Core Database Schema (Users, Conversations)
+7a2e0e5 Initialize Drizzle ORM and Postgres connection
+8ebd8b4 Add basic metadata and SEO configuration
+85cf410 Initialize Tailwind CSS v4 and PostCSS configuration
+f9c3f5f Initial repository setup
