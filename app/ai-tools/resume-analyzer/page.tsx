@@ -331,7 +331,7 @@ export default function ResumeAnalyzerPage() {
 
                                             <div>
                                                 <h4 className="text-xl font-black text-white line-clamp-1 mb-2 group-hover:text-blue-400 transition-colors uppercase">
-                                                    {item.jobDescription || "Standard Profile Diagnostic"}
+                                                    {item.jobDescription || "Standard Profile Analysis"}
                                                 </h4>
                                                 {item.resumeName && (
                                                     <div className="flex items-center gap-2 mb-4">

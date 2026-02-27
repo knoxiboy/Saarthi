@@ -375,7 +375,7 @@ export default function AIChatPage() {
                             </div>
                             <div>
                                 <h2 className="text-5xl font-black text-white mb-4 uppercase tracking-tighter">How can I <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 italic">Help You?</span></h2>
-                                <p className="text-slate-500 text-lg font-medium max-w-lg mx-auto leading-relaxed">Select a tailored prompt below or start typing to begin your strategic session.</p>
+                                <p className="text-slate-500 text-lg font-medium max-w-lg mx-auto leading-relaxed">Select a tailored prompt below or start typing to begin your chat session.</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full px-4">
@@ -457,7 +457,7 @@ export default function AIChatPage() {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Message Saarthi AI Strategy Expert..."
+                            placeholder="Message Saarthi AI..."
                             className="relative w-full px-8 py-3.5 bg-white/5 border border-white/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-white placeholder:text-slate-600 shadow-2xl backdrop-blur-3xl text-lg font-medium"
                         />
                     </div>
@@ -484,7 +484,7 @@ export default function AIChatPage() {
 
                         <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/5 relative z-10">
                             <div>
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tight text-left">Strategy Archive</h3>
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tight text-left">Chat Archive</h3>
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 text-left">Review your past sessions</p>
                             </div>
                             <button onClick={() => setShowHistory(false)} className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all group">

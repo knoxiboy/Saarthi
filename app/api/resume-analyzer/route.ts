@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
-import { createRequire } from "module";
+import { PDFParse } from "pdf-parse";
 import { db } from "@/configs/db";
 import { resumeAnalysisTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
-
-const require = createRequire(import.meta.url);
-const pdf = require("pdf-parse-fork");
 
 // Forced Refresh: 2026-02-09T06:05:00Z
 export async function POST(req: NextRequest) {
@@ -21,12 +18,13 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Resume file is required" }, { status: 400 });
         }
 
-        // 1. Extract text from PDF using pdf-parse-fork (Robust, no worker issues)
+        // 1. Extract text from PDF using pdf-parse (Robust, no worker issues)
         const buffer = Buffer.from(await file.arrayBuffer());
         let resumeText = "";
 
         try {
-            const data = await pdf(buffer);
+            const parser = new PDFParse({ data: buffer });
+            const data = await parser.getText();
             resumeText = data.text;
         } catch (parseError: any) {
             console.error("PDF Parsing Error:", parseError);

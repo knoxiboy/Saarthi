@@ -143,7 +143,7 @@ function ResumeBuilderContent() {
                         </Link>
                         <div>
                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-2">
-                                Resume Engine v3.0
+                                Resume Builder
                             </div>
                             <h1 className="text-3xl font-black text-white tracking-tight uppercase leading-none">
                                 Resume <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Architect</span>
@@ -167,14 +167,14 @@ function ResumeBuilderContent() {
                             className="inline-flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-slate-300 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all shadow-xl backdrop-blur-xl group disabled:opacity-50"
                         >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />}
-                            {searchParams.get("id") ? "Update Core" : "Save Progress"}
+                            {searchParams.get("id") ? "Update Resume" : "Save Progress"}
                         </button>
                         <button
                             onClick={() => downloadResume(data)}
                             className="inline-flex items-center gap-3 px-6 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl group"
                         >
                             <Download className="w-4 h-4 group-hover:-translate-y-1 transition-transform" />
-                            Finalize PDF
+                            Download PDF
                         </button>
                     </div>
                 </div>
@@ -192,7 +192,7 @@ function ResumeBuilderContent() {
                     >
                         <div id="sidebar-nav" className={`h-full border-r border-white/5 p-8 space-y-3 bg-white/2 backdrop-blur-xl overflow-y-auto custom-scrollbar transition-all duration-300 ${sidebarSize <= 17 ? "px-4" : "p-8"}`}>
                             <div className={`mb-10 px-4 transition-opacity duration-300 ${sidebarSize <= 17 ? "opacity-0 h-0 mb-0 overflow-hidden" : "opacity-100"}`}>
-                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 whitespace-nowrap">Architecture</h3>
+                                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 whitespace-nowrap">Sections</h3>
                                 <div className="h-0.5 w-8 bg-blue-500/30 rounded-full" />
                             </div>
                             <div className="space-y-3">
@@ -217,11 +217,11 @@ function ResumeBuilderContent() {
                                 ))}
                             </div>
 
-                            <div className={`absolute bottom-8 left-4 right-4 transition-all duration-300 ${sidebarSize <= 17 ? "opacity-0 scale-0 pointer-events-none" : "opacity-100 scale-100"}`}>
+                            <div className={`mt-12 transition-all duration-300 ${sidebarSize <= 17 ? "opacity-0 scale-0 pointer-events-none hidden" : "opacity-100 scale-100"}`}>
                                 <div className="p-6 rounded-3xl bg-blue-600/5 border border-blue-500/10 backdrop-blur-3xl">
                                     <Sparkles className="w-5 h-5 text-blue-400 mb-3" />
                                     <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-wider">
-                                        Content optimization active in neural layers.
+                                        Content optimization is active.
                                     </p>
                                 </div>
                             </div>
@@ -239,7 +239,7 @@ function ResumeBuilderContent() {
                                         <SectionHeader title="Personal Information" icon={User} />
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div className="space-y-3">
-                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Identity</Label>
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</Label>
                                                 <Input
                                                     className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-xl transition-all"
                                                     value={data.personalInfo.fullName || ""}
@@ -248,7 +248,7 @@ function ResumeBuilderContent() {
                                                 />
                                             </div>
                                             <div className="space-y-3">
-                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Digital Mail</Label>
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</Label>
                                                 <Input
                                                     className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-xl transition-all"
                                                     value={data.personalInfo.email || ""}
@@ -257,7 +257,7 @@ function ResumeBuilderContent() {
                                                 />
                                             </div>
                                             <div className="space-y-3">
-                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Comm-Link</Label>
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Phone Number</Label>
                                                 <Input
                                                     className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-xl transition-all"
                                                     value={data.personalInfo.phone || ""}
@@ -266,7 +266,7 @@ function ResumeBuilderContent() {
                                                 />
                                             </div>
                                             <div className="space-y-3">
-                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Geographic Node</Label>
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Address</Label>
                                                 <Input
                                                     className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-xl transition-all"
                                                     value={data.personalInfo.address || ""}
@@ -303,12 +303,12 @@ function ResumeBuilderContent() {
                                             </div>
                                         </div>
                                         <div className="space-y-3">
-                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Professional Narrative</Label>
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Professional Summary</Label>
                                             <textarea
                                                 className="w-full min-h-[180px] p-6 bg-white/5 border border-white/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none text-white placeholder:text-slate-600 text-sm leading-relaxed backdrop-blur-xl shadow-2xl"
                                                 value={data.personalInfo.summary || ""}
                                                 onChange={e => setData({ ...data, personalInfo: { ...data.personalInfo, summary: e.target.value } })}
-                                                placeholder="Briefly describe your career trajectory and core competencies..."
+                                                placeholder="Briefly describe your experience and skills..."
                                             />
                                         </div>
                                     </div>
@@ -316,7 +316,7 @@ function ResumeBuilderContent() {
 
                                 {step === 2 && (
                                     <div className="space-y-12">
-                                        <SectionHeader title="Professional Trajectory" icon={Briefcase} />
+                                        <SectionHeader title="Professional Experience" icon={Briefcase} />
                                         <div className="space-y-8">
                                             {data.experience.map((exp, idx) => (
                                                 <div key={idx} className="p-10 bg-white/5 rounded-[3rem] border border-white/10 relative group shadow-2xl backdrop-blur-3xl animate-in zoom-in-95 duration-500">
@@ -332,7 +332,7 @@ function ResumeBuilderContent() {
                                                     </button>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Organization</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Company</Label>
                                                             <Input
                                                                 className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                 value={exp.company || ""}
@@ -341,11 +341,11 @@ function ResumeBuilderContent() {
                                                                     newExp[idx].company = e.target.value;
                                                                     setData({ ...data, experience: newExp });
                                                                 }}
-                                                                placeholder="e.g. Neuralink"
+                                                                placeholder="e.g. Acme Corp"
                                                             />
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Strategic Role</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Role</Label>
                                                             <Input
                                                                 className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                 value={exp.role || ""}
@@ -354,11 +354,11 @@ function ResumeBuilderContent() {
                                                                     newExp[idx].role = e.target.value;
                                                                     setData({ ...data, experience: newExp });
                                                                 }}
-                                                                placeholder="e.g. Lead System Architect"
+                                                                placeholder="e.g. Software Engineer"
                                                             />
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Start Phase</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Start Date</Label>
                                                             <Input
                                                                 className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                 value={exp.startDate || ""}
@@ -371,7 +371,7 @@ function ResumeBuilderContent() {
                                                             />
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">End Phase</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">End Date</Label>
                                                             <Input
                                                                 className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                 value={exp.endDate || ""}
@@ -385,7 +385,7 @@ function ResumeBuilderContent() {
                                                         </div>
                                                     </div>
                                                     <div className="mt-8 space-y-3">
-                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Operational Summary</Label>
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Description</Label>
                                                         <textarea
                                                             className="w-full min-h-[120px] p-6 bg-white/5 border border-white/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all resize-none text-white placeholder:text-slate-600 text-sm backdrop-blur-xl"
                                                             value={exp.description || ""}
@@ -406,7 +406,7 @@ function ResumeBuilderContent() {
                                                 <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                                     <Plus className="w-5 h-5" />
                                                 </div>
-                                                Initialize New Experience
+                                                Add Experience
                                             </button>
                                         </div>
                                     </div>
@@ -414,7 +414,7 @@ function ResumeBuilderContent() {
 
                                 {step === 3 && (
                                     <div className="space-y-12">
-                                        <SectionHeader title="Academic Foundation" icon={GraduationCap} />
+                                        <SectionHeader title="Education" icon={GraduationCap} />
                                         <div className="space-y-8">
                                             {data.education.map((edu, idx) => (
                                                 <div key={idx} className="p-10 bg-white/5 rounded-[3rem] border border-white/10 relative group shadow-2xl backdrop-blur-3xl animate-in zoom-in-95 duration-500">
@@ -456,7 +456,7 @@ function ResumeBuilderContent() {
                                                             />
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Start Era</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Start Date</Label>
                                                             <Input
                                                                 className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                 value={edu.startDate || ""}
@@ -469,7 +469,7 @@ function ResumeBuilderContent() {
                                                             />
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Conclusion Era</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">End Date</Label>
                                                             <Input
                                                                 className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                 value={edu.endDate || ""}
@@ -504,7 +504,7 @@ function ResumeBuilderContent() {
                                                 <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                                     <Plus className="w-5 h-5" />
                                                 </div>
-                                                Initialize Academic Node
+                                                Add Education
                                             </button>
                                         </div>
                                     </div>
@@ -513,7 +513,7 @@ function ResumeBuilderContent() {
                                 {step === 4 && (
                                     <div className="space-y-16">
                                         <div className="space-y-12">
-                                            <SectionHeader title="Core Capabilities" icon={Code} />
+                                            <SectionHeader title="Skills" icon={Code} />
                                             <div className="space-y-8">
                                                 {data.skills.map((skillGroup, idx) => (
                                                     <div key={idx} className="p-10 bg-white/5 rounded-[3rem] border border-white/10 relative group shadow-2xl backdrop-blur-3xl animate-in zoom-in-95 duration-500 space-y-8">
@@ -537,11 +537,11 @@ function ResumeBuilderContent() {
                                                                     newSkills[idx].category = e.target.value;
                                                                     setData({ ...data, skills: newSkills });
                                                                 }}
-                                                                placeholder="e.g. Neural Networks, Cloud Ops"
+                                                                placeholder="e.g. Frontend Development, Data Analysis"
                                                             />
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Proficiencies (Comma separated)</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Skills (Comma separated)</Label>
                                                             <Input
                                                                 className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                 value={skillGroup.skills?.join(", ") || ""}
@@ -562,13 +562,13 @@ function ResumeBuilderContent() {
                                                     <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                                         <Plus className="w-5 h-5" />
                                                     </div>
-                                                    Register Capability Set
+                                                    Add Skill Category
                                                 </button>
                                             </div>
                                         </div>
 
                                         <div className="space-y-12">
-                                            <SectionHeader title="Strategic Projects" icon={Sparkles} />
+                                            <SectionHeader title="Projects" icon={Sparkles} />
                                             <div className="space-y-8">
                                                 {data.projects.map((project, idx) => (
                                                     <div key={idx} className="p-10 bg-white/5 rounded-[3rem] border border-white/10 relative group shadow-2xl backdrop-blur-3xl animate-in zoom-in-95 duration-500 space-y-8">
@@ -593,11 +593,11 @@ function ResumeBuilderContent() {
                                                                         newProjects[idx].title = e.target.value;
                                                                         setData({ ...data, projects: newProjects });
                                                                     }}
-                                                                    placeholder="Project Codex"
+                                                                    placeholder="e.g. Personal Portfolio"
                                                                 />
                                                             </div>
                                                             <div className="space-y-3">
-                                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Deployment Link</Label>
+                                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Project Link</Label>
                                                                 <Input
                                                                     className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                     value={project.link || ""}
@@ -624,7 +624,7 @@ function ResumeBuilderContent() {
                                                             />
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Project Architecture</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Description</Label>
                                                             <textarea
                                                                 className="w-full min-h-[100px] p-6 bg-white/5 border border-white/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all resize-none text-white placeholder:text-slate-600 text-sm backdrop-blur-xl"
                                                                 value={project.description || ""}
@@ -633,7 +633,7 @@ function ResumeBuilderContent() {
                                                                     newProjects[idx].description = e.target.value;
                                                                     setData({ ...data, projects: newProjects });
                                                                 }}
-                                                                placeholder="Architectural overview and core achievements..."
+                                                                placeholder="Project overview and key achievements..."
                                                             />
                                                         </div>
                                                     </div>
@@ -645,7 +645,7 @@ function ResumeBuilderContent() {
                                                     <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                                         <Plus className="w-5 h-5" />
                                                     </div>
-                                                    Initialize Project Instance
+                                                    Add Project
                                                 </button>
                                             </div>
                                         </div>
@@ -654,7 +654,7 @@ function ResumeBuilderContent() {
 
                                 {step === 5 && (
                                     <div className="space-y-12">
-                                        <SectionHeader title="Distinctions & Recognition" icon={Sparkles} />
+                                        <SectionHeader title="Honors & Awards" icon={Sparkles} />
                                         <div className="space-y-6">
                                             {(data.honors || []).map((honor, idx) => (
                                                 <div key={idx} className="flex gap-4 items-center group animate-in slide-in-from-left duration-300" style={{ animationDelay: `${idx * 100}ms` }}>
@@ -692,7 +692,7 @@ function ResumeBuilderContent() {
                                                 <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                                     <Plus className="w-5 h-5" />
                                                 </div>
-                                                Initialize Recognition
+                                                Add Honor
                                             </button>
                                         </div>
                                     </div>
@@ -701,10 +701,10 @@ function ResumeBuilderContent() {
                                 {step === 6 && (
                                     <div className="space-y-16">
                                         <div className="space-y-8">
-                                            <SectionHeader title="Custom Architecture" icon={Layout} />
+                                            <SectionHeader title="Custom Sections" icon={Layout} />
 
                                             <div className="space-y-4">
-                                                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-4">Neural Presets</Label>
+                                                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-4">Presets</Label>
                                                 <div className="flex flex-wrap gap-3">
                                                     {[
                                                         { title: "Certifications", icon: ShieldCheck },
@@ -750,7 +750,7 @@ function ResumeBuilderContent() {
 
                                                     <div className="space-y-8">
                                                         <div className="space-y-3">
-                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Section Identity</Label>
+                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Section Title</Label>
                                                             <Input
                                                                 className="h-14 px-6 bg-white/5 border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:ring-blue-500/50 backdrop-blur-xl"
                                                                 value={section.title}
@@ -778,7 +778,7 @@ function ResumeBuilderContent() {
                                                                     </button>
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                                                         <div className="space-y-2">
-                                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Node Title</Label>
+                                                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Title</Label>
                                                                             <Input
                                                                                 className="h-10 px-4 bg-white/5 border-white/10 rounded-xl"
                                                                                 value={item.title || ""}
@@ -874,7 +874,7 @@ function ResumeBuilderContent() {
                                                 <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
                                                     <Plus className="w-5 h-5" />
                                                 </div>
-                                                Initialize Custom Block
+                                                Add Custom Section
                                             </button>
                                         </div>
                                     </div>
@@ -888,14 +888,14 @@ function ResumeBuilderContent() {
                                         className="flex items-center gap-3 px-8 py-5 text-slate-500 hover:text-white font-black text-[10px] uppercase tracking-[0.2em] disabled:opacity-0 transition-all group"
                                     >
                                         <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                                        Previous Phase
+                                        Previous Step
                                     </button>
                                     {step < 6 ? (
                                         <button
                                             onClick={nextStep}
                                             className="flex items-center gap-3 px-12 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-200 transition-all shadow-2xl group"
                                         >
-                                            Continue Evolution
+                                            Next Step
                                             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                         </button>
                                     ) : (
@@ -903,7 +903,7 @@ function ResumeBuilderContent() {
                                             onClick={() => downloadResume(data)}
                                             className="flex items-center gap-3 px-12 py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-blue-700 transition-all shadow-[0_0_30px_rgba(37,99,235,0.3)] group"
                                         >
-                                            Generate Final Blueprint
+                                            Generate PDF
                                             <Download className="w-4 h-4 group-hover:-translate-y-1 transition-transform" />
                                         </button>
                                     )}
@@ -920,7 +920,7 @@ function ResumeBuilderContent() {
                             <div className="sticky top-0 mb-8 flex items-center justify-between z-20">
                                 <div className="flex items-center gap-3">
                                     <Layout className="w-4 h-4 text-blue-500" />
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Live Diagnostic Preview</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Live Document Preview</span>
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
@@ -947,7 +947,7 @@ export default function ResumeBuilderPage() {
             <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Initializing Architect...</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Initializing Workspace...</p>
                 </div>
             </div>
         }>
@@ -963,7 +963,7 @@ function SectionHeader({ title, icon: Icon }: { title: string, icon: any }) {
                 <Icon className="w-10 h-10 text-blue-500 group-hover:scale-110 transition-transform duration-500" />
             </div>
             <div>
-                <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-2 opacity-70 group-hover:opacity-100 transition-opacity">Architecture Core</h3>
+                <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-2 opacity-70 group-hover:opacity-100 transition-opacity">Resume Builder</h3>
                 <h2 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">{title}</h2>
             </div>
         </div>

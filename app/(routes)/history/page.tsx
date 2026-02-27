@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import {
     Map,
     MessageSquare,
@@ -34,8 +35,10 @@ import {
 import { RoadmapItem, ChatItem, CoverLetterItem, ResumeAnalysisItem } from "@/types"
 
 
-export default function HistoryPage() {
-    const [activeTab, setActiveTab] = useState("roadmaps")
+function HistoryContent() {
+    const searchParams = useSearchParams()
+    const tabParam = searchParams.get("tab")
+    const [activeTab, setActiveTab] = useState(tabParam || "roadmaps")
     const [roadmaps, setRoadmaps] = useState<RoadmapItem[]>([])
     const [chats, setChats] = useState<ChatItem[]>([])
     const [coverLetters, setCoverLetters] = useState<CoverLetterItem[]>([])
@@ -198,15 +201,15 @@ export default function HistoryPage() {
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-12">
                     <div className="space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest leading-none">
-                            <Clock className="w-3 h-3" />
-                            Session Archive
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-bold uppercase tracking-widest leading-none shadow-[0_0_15px_rgba(59,130,246,0.15)] backdrop-blur-md">
+                            <Clock className="w-4 h-4" />
+                            Activity Log
                         </div>
-                        <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">
-                            Identity <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">History</span>
+                        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+                            Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">History</span>
                         </h1>
-                        <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-xl">
-                            Access and manage your evolutionary path across the Saarthi platform.
+                        <p className="text-slate-400 text-base font-medium leading-relaxed max-w-xl">
+                            Review and manage all your past interactions, generated documents, and analyses.
                         </p>
                     </div>
 
@@ -216,7 +219,7 @@ export default function HistoryPage() {
                         </div>
                         <input
                             type="text"
-                            placeholder="FILTER ARCHIVE..."
+                            placeholder="SEARCH HISTORY..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-14 pr-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-xl transition-all shadow-2xl"
@@ -224,8 +227,8 @@ export default function HistoryPage() {
                     </div>
                 </div>
 
-                <Tabs defaultValue="roadmaps" onValueChange={setActiveTab} className="space-y-10">
-                    <TabsList className="bg-white/5 p-1.5 rounded-[2rem] h-auto flex flex-nowrap gap-1 overflow-x-auto no-scrollbar justify-start md:justify-center border border-white/5 backdrop-blur-xl">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
+                    <TabsList className="bg-white/5 p-2 rounded-[2rem] h-auto flex flex-nowrap gap-2 overflow-x-auto no-scrollbar justify-start md:justify-center border border-white/10 backdrop-blur-xl shadow-xl">
                         {[
                             { id: "roadmaps", icon: Map, label: "Roadmaps", count: roadmaps.length },
                             { id: "chats", icon: MessageSquare, label: "Expert Chat", count: chats.length },
@@ -236,7 +239,7 @@ export default function HistoryPage() {
                             <TabsTrigger
                                 key={tab.id}
                                 value={tab.id}
-                                className="rounded-[1.5rem] px-6 py-4 data-[state=active]:bg-white data-[state=active]:text-black text-slate-400 font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 whitespace-nowrap group relative"
+                                className="rounded-[1.5rem] px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-[0_0_20px_rgba(37,99,235,0.3)] text-slate-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center gap-3 whitespace-nowrap group relative"
                             >
                                 <tab.icon className="w-4 h-4 transition-transform group-hover:scale-110" />
                                 {tab.label}
@@ -257,8 +260,8 @@ export default function HistoryPage() {
                                 <Loader2 className="w-12 h-12 text-blue-500 animate-[spin_2s_linear_infinite] relative z-10" />
                             </div>
                             <div className="space-y-2 text-center">
-                                <p className="text-[10px] font-black text-white uppercase tracking-[0.3em] animate-pulse">Synchronizing Records</p>
-                                <p className="text-slate-500 text-[9px] uppercase font-bold tracking-widest">Accessing secure encryption layers...</p>
+                                <p className="text-[10px] font-black text-white uppercase tracking-[0.3em] animate-pulse">Loading Records</p>
+                                <p className="text-slate-500 text-[9px] uppercase font-bold tracking-widest">Please wait...</p>
                             </div>
                         </div>
                     ) : (
@@ -267,9 +270,9 @@ export default function HistoryPage() {
                                 {filteredRoadmaps.length === 0 ? (
                                     <EmptyState
                                         icon={<Map className="w-10 h-10" />}
-                                        title="No Strategic Roadmaps"
-                                        description={searchQuery ? "No matching data in current cache." : "Your generated career paths will be archived here."}
-                                        action={!searchQuery ? { label: "Design Blueprint", href: "/ai-tools/roadmap" } : undefined}
+                                        title="No Roadmaps"
+                                        description={searchQuery ? "No matching roadmaps found." : "Your generated roadmaps will be stored here."}
+                                        action={!searchQuery ? { label: "Create Roadmap", href: "/ai-tools/roadmap" } : undefined}
                                     />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -282,7 +285,7 @@ export default function HistoryPage() {
                                                 href="/ai-tools/roadmap"
                                                 onDelete={() => handleDeleteRoadmap(item.id)}
                                                 deleteTitle="Delete Roadmap?"
-                                                deleteDescription="This action will permanently delete this strategic blueprint."
+                                                deleteDescription="This action will permanently delete this roadmap."
                                             />
                                         ))}
                                     </div>
@@ -293,9 +296,9 @@ export default function HistoryPage() {
                                 {filteredChats.length === 0 ? (
                                     <EmptyState
                                         icon={<MessageSquare className="w-10 h-10" />}
-                                        title="No Session Logs"
-                                        description={searchQuery ? "No matching sessions found." : "Your expert consultation logs will appear here."}
-                                        action={!searchQuery ? { label: "Initiate Link", href: "/ai-tools/ai-chat" } : undefined}
+                                        title="No Chats"
+                                        description={searchQuery ? "No matching chats found." : "Your chats will appear here."}
+                                        action={!searchQuery ? { label: "Start Chat", href: "/ai-tools/ai-chat" } : undefined}
                                     />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -307,8 +310,8 @@ export default function HistoryPage() {
                                                 date={new Date(item.createdAt).toLocaleDateString()}
                                                 href={`/ai-tools/ai-chat?chatId=${item.chatId}`}
                                                 onDelete={() => handleDeleteChat(item.chatId)}
-                                                deleteTitle="Delete Chat Log?"
-                                                deleteDescription="This action permanently erases all session telemetry."
+                                                deleteTitle="Delete Chat?"
+                                                deleteDescription="This action will permanently delete this chat."
                                             />
                                         ))}
                                     </div>
@@ -319,9 +322,9 @@ export default function HistoryPage() {
                                 {filteredCoverLetters.length === 0 ? (
                                     <EmptyState
                                         icon={<FileText className="w-10 h-10" />}
-                                        title="No Narrative Sets"
-                                        description={searchQuery ? "No matching narratives in archive." : "Generated application packets will be stored here."}
-                                        action={!searchQuery ? { label: "Compose Data", href: "/ai-tools/cover-letter" } : undefined}
+                                        title="No Cover Letters"
+                                        description={searchQuery ? "No matching cover letters found." : "Generated cover letters will be stored here."}
+                                        action={!searchQuery ? { label: "Create Cover Letter", href: "/ai-tools/cover-letter" } : undefined}
                                     />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -333,8 +336,8 @@ export default function HistoryPage() {
                                                 date={new Date(item.createdAt).toLocaleDateString()}
                                                 href="/ai-tools/cover-letter"
                                                 onDelete={() => handleDeleteCoverLetter(item.id)}
-                                                deleteTitle="Delete Narrative?"
-                                                deleteDescription="This action cannot be reverted."
+                                                deleteTitle="Delete Cover Letter?"
+                                                deleteDescription="This action will permanently delete this cover letter."
                                             />
                                         ))}
                                     </div>
@@ -345,9 +348,9 @@ export default function HistoryPage() {
                                 {filteredResumes.length === 0 ? (
                                     <EmptyState
                                         icon={<Search className="w-10 h-10" />}
-                                        title="No Diagnostic Data"
-                                        description={searchQuery ? "Search yield empty diagnostic results." : "Analysis reports and scoring will appear here."}
-                                        action={!searchQuery ? { label: "System Diagnostic", href: "/ai-tools/resume-analyzer" } : undefined}
+                                        title="No Resumes Analyzed"
+                                        description={searchQuery ? "No matching analyzed resumes found." : "Analyzed resumes will appear here."}
+                                        action={!searchQuery ? { label: "Analyze Resume", href: "/ai-tools/resume-analyzer" } : undefined}
                                     />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -355,12 +358,12 @@ export default function HistoryPage() {
                                             <HistoryCard
                                                 key={item.id}
                                                 icon={<Search className="w-6 h-6" />}
-                                                title={item.jobDescription || "Standard Profile Diagnostic"}
+                                                title={item.jobDescription || "Resume Analysis"}
                                                 date={new Date(item.createdAt).toLocaleDateString()}
                                                 href="/ai-tools/resume-analyzer"
                                                 onDelete={() => handleDeleteResume(item.id)}
-                                                deleteTitle="Delete Diagnostic?"
-                                                deleteDescription={`Final telemetry data will be lost${item.resumeName ? ` for ${item.resumeName}` : ""}.`}
+                                                deleteTitle="Delete Analysis?"
+                                                deleteDescription={`This analysis will be permanently deleted${item.resumeName ? ` for ${item.resumeName}` : ""}.`}
                                             />
                                         ))}
                                     </div>
@@ -371,9 +374,9 @@ export default function HistoryPage() {
                                 {filteredSavedResumes.length === 0 ? (
                                     <EmptyState
                                         icon={<Briefcase className="w-10 h-10" />}
-                                        title="No Core Blueprints"
-                                        description={searchQuery ? "Registry search yielded zero matches." : "Your resume instances will be managed here."}
-                                        action={!searchQuery ? { label: "Initialize Build", href: "/ai-tools/resume-builder" } : undefined}
+                                        title="No Built Resumes"
+                                        description={searchQuery ? "No matching resumes found." : "Your created resumes will be managed here."}
+                                        action={!searchQuery ? { label: "Create Resume", href: "/ai-tools/resume-builder" } : undefined}
                                     />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -381,12 +384,12 @@ export default function HistoryPage() {
                                             <HistoryCard
                                                 key={item.id}
                                                 icon={<Briefcase className="w-6 h-6" />}
-                                                title={item.resumeName || item.resumeData?.personalInfo?.fullName || "Unnamed Instance"}
+                                                title={item.resumeName || item.resumeData?.personalInfo?.fullName || "Untitled Resume"}
                                                 date={new Date(item.createdAt).toLocaleDateString()}
                                                 href={`/ai-tools/resume-builder?id=${item.id}`}
                                                 onDelete={() => handleDeleteSavedResume(item.id)}
-                                                deleteTitle="Decommission Instance?"
-                                                deleteDescription="This instance data will be permanently wiped."
+                                                deleteTitle="Delete Resume?"
+                                                deleteDescription="This resume will be permanently deleted."
                                             />
                                         ))}
                                     </div>
@@ -397,6 +400,22 @@ export default function HistoryPage() {
                 </Tabs>
             </div>
         </div>
+    )
+}
+
+export default function HistoryPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-6">
+                <Loader2 className="w-12 h-12 text-blue-500 animate-[spin_2s_linear_infinite]" />
+                <div className="space-y-2 text-center">
+                    <p className="text-[10px] font-black text-white uppercase tracking-[0.3em] animate-pulse">Loading Records</p>
+                    <p className="text-slate-500 text-[9px] uppercase font-bold tracking-widest">Please wait...</p>
+                </div>
+            </div>
+        }>
+            <HistoryContent />
+        </Suspense>
     )
 }
 
@@ -428,7 +447,7 @@ function HistoryCard({
                         {icon}
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider bg-white/5 px-4 py-1.5 rounded-full border border-white/10 shadow-inner">
                             {date}
                         </span>
                         <AlertDialog>
@@ -452,7 +471,7 @@ function HistoryCard({
                 </div>
 
                 <div className="flex-1">
-                    <h4 className="text-xl font-black text-white line-clamp-2 uppercase tracking-tight group-hover:text-blue-400 transition-colors leading-snug">
+                    <h4 className="text-lg font-bold text-white line-clamp-2 leading-tight group-hover:text-blue-400 transition-colors">
                         {title}
                     </h4>
                 </div>
@@ -465,12 +484,10 @@ function HistoryCard({
                     </div>
                     <Link
                         href={href}
-                        className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-3 group/link hover:text-blue-400 transition-all"
+                        className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-3 group/link hover:text-blue-400 transition-all bg-white/5 px-4 py-2 rounded-xl hover:bg-white/10"
                     >
-                        Access Point
-                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover/link:bg-blue-600 group-hover/link:translate-x-1 transition-all">
-                            <ArrowRight className="w-3.5 h-3.5" />
-                        </div>
+                        View Details
+                        <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                     </Link>
                 </div>
             </div>

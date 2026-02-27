@@ -30,7 +30,7 @@ export default function Icon() {
                     fontFamily: 'sans-serif',
                 }}
             >
-                M
+                S
             </div>
         ),
         // ImageResponse options
