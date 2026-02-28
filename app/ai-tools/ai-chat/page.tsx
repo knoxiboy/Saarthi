@@ -278,10 +278,21 @@ export default function AIChatPage() {
                 saveMessageToHistory("assistant", aiResponse, activeChatId, activeTitle)
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Chat Error:", error)
-            const errorMessage: Message = { role: "assistant", content: "Sorry, I encountered an error. Please try again." }
-            setMessages(prev => [...prev, errorMessage])
+            const status = error.response?.status;
+            let errorMessage = "Sorry, I encountered an error. Please try again.";
+
+            if (status === 429) {
+                errorMessage = "The AI is currently under high load (Too Many Requests). Please wait a few seconds and try again.";
+            } else if (status === 413) {
+                errorMessage = "The file or message is too large for the AI to process. Please try a smaller one.";
+            } else if (error.response?.data?.error) {
+                errorMessage = error.response.data.error;
+            }
+
+            const aiErrorMessage: Message = { role: "assistant", content: errorMessage }
+            setMessages(prev => [...prev, aiErrorMessage])
             setLoading(false)
         }
     }

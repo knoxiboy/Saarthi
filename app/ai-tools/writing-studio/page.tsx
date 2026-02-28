@@ -142,7 +142,16 @@ export default function WritingStudioPage() {
             if (tab === "history") fetchHistory()
         } catch (err: any) {
             console.error(err)
-            toast.error("Failed to generate document")
+            const status = err.response?.status;
+            let errorMessage = "Failed to generate document";
+
+            if (status === 429) {
+                errorMessage = "The AI is currently under high load (Too Many Requests). Please wait a few seconds and try again.";
+            } else if (err.response?.data?.error) {
+                errorMessage = err.response.data.error;
+            }
+
+            toast.error(errorMessage)
         } finally {
             setLoading(false)
         }

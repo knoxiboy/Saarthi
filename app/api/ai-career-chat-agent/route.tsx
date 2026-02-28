@@ -1,6 +1,7 @@
-import axios from "axios";
 import { NextResponse } from "next/server";
-import pdfParse from "pdf-parse";
+// Use pdf-parse-fork which is more stable in Next.js environments
+import pdf from "pdf-parse-fork";
+import { chatWithGroq } from "@/lib/groq";
 
 export async function POST(req: any) {
     try {
@@ -78,7 +79,7 @@ Tone: Professional, strategic, calm, intelligent.
 
         if (fileBase64 && fileType) {
             if (fileType.startsWith("image/")) {
-                activeModel = "llama-3.2-90b-vision-preview";
+                activeModel = "llama-3.2-11b-vision-preview";
                 hasImage = true;
                 imagePart = {
                     type: "image_url",
@@ -87,9 +88,16 @@ Tone: Professional, strategic, calm, intelligent.
                     }
                 };
             } else if (fileType === "application/pdf") {
-                const buffer = Buffer.from(fileBase64, "base64");
-                const data = await pdfParse(buffer);
-                appendedText = `\n\n--- [Attached PDF Document: ${fileName || "Document.pdf"}] ---\n${data.text}\n---`;
+                try {
+                    const buffer = Buffer.from(fileBase64, "base64");
+                    // Safety check for pdfParse
+                    const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
+                    const data = await pdfParse(buffer);
+                    appendedText = `\n\n--- [Attached PDF Document: ${fileName || "Document.pdf"}] ---\n${data.text}\n---`;
+                } catch (pdfError: any) {
+                    console.error("PDF Parsing Error:", pdfError.message);
+                    return NextResponse.json({ error: "Failed to parse PDF document. Please ensure it's not password protected." }, { status: 422 });
+                }
             } else if (fileType.startsWith("text/")) {
                 const text = Buffer.from(fileBase64, "base64").toString("utf-8");
                 appendedText = `\n\n--- [Attached Text Document: ${fileName || "Document.txt"}] ---\n${text}\n---`;
@@ -101,12 +109,30 @@ Tone: Professional, strategic, calm, intelligent.
         const userText = (userInput || "Please analyze the attached file.") + appendedText;
 
         // Append past history to the finalMessages array before adding the latest message
+        // [TPM OPTIMIZATION]: Limit history to last 10 messages (approx 5 conversational rounds)
         if (conversationHistory && Array.isArray(conversationHistory)) {
+            const historicalWindow = conversationHistory.slice(-10);
+
             // Take all but the last message (which is the current user input handled below)
-            const priorMessages = conversationHistory.slice(0, -1).map((msg: any) => ({
-                role: msg.role === "user" ? "user" : "assistant",
-                content: msg.content
-            }));
+            const priorMessages = historicalWindow.slice(0, -1).map((msg: any) => {
+                let textContent = "";
+                if (typeof msg.content === "string") {
+                    textContent = msg.content;
+                } else if (Array.isArray(msg.content)) {
+                    // Extract text parts from multi-modal content for history stability
+                    textContent = msg.content
+                        .filter((part: any) => part.type === "text")
+                        .map((part: any) => part.text)
+                        .join("\n");
+                } else {
+                    textContent = String(msg.content || "");
+                }
+
+                return {
+                    role: msg.role === "user" ? "user" : "assistant",
+                    content: textContent || " " // Ensure non-empty string
+                };
+            });
             finalMessages.push(...priorMessages);
         }
 
@@ -125,33 +151,27 @@ Tone: Professional, strategic, calm, intelligent.
             });
         }
 
-        // Log for debugging
-        // console.log("Final Messages being sent to Groq:", JSON.stringify(finalMessages, null, 2));
+        // Using robust Groq handler with built-in retries and model failover
+        const data = await chatWithGroq(finalMessages, {
+            model: activeModel,
+            temperature: 0.7,
+            max_tokens: 1024,
+        });
 
-        const response = await axios.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            {
-                model: activeModel,
-                messages: finalMessages,
-                temperature: 0.7,
-                max_tokens: 1024,
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        if (!data?.choices?.[0]?.message?.content) {
+            throw new Error("Invalid response structure from AI provider");
+        }
 
-        const aiResponse = response.data.choices[0].message.content;
-
+        const aiResponse = data.choices[0].message.content;
         return NextResponse.json({ output: aiResponse });
+
     } catch (error: any) {
-        console.error("AI Career Chat Error Details:", error.response?.data || error.message);
+        // chatWithGroq already logs errors, but we catch them for the HTTP response
+        const status = error.response?.status || 500;
         const groqError = error.response?.data?.error?.message;
+
         return NextResponse.json({
             error: groqError || error.message || "Internal Server Error"
-        }, { status: error.response?.status || 500 });
+        }, { status });
     }
 }

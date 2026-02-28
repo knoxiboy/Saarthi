@@ -104,7 +104,18 @@ export default function ResumeAnalyzerPage() {
             fetchHistory() // Refresh history after analysis
         } catch (err: any) {
             console.error(err)
-            setError(err.response?.data?.error || "Failed to analyze resume. Please try again.")
+            const status = err.response?.status;
+            let errorMessage = "Failed to analyze resume. Please try again.";
+
+            if (status === 429) {
+                errorMessage = "The AI is currently under high load (Too Many Requests). Please wait a few seconds and try again.";
+            } else if (status === 413) {
+                errorMessage = "The file or message is too large for the AI to process. Please try a smaller one.";
+            } else if (err.response?.data?.error) {
+                errorMessage = err.response.data.error;
+            }
+
+            setError(errorMessage)
         } finally {
             setLoading(false)
         }

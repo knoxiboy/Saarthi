@@ -1,5 +1,5 @@
-import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
+import { chatWithGroq } from "@/lib/groq";
 import { db } from "@/configs/db";
 import { writingStudioDocsTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
@@ -49,26 +49,20 @@ ${userDetails}
 Output only the generated document content. No conversational filler.
 `;
 
-        const response = await axios.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            {
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: `Generate the ${docTypeNames[docType]} based on the context provided.` }
-                ],
-                temperature: 0.7,
-                max_tokens: 2048,
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        const data = await chatWithGroq([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Generate the ${docTypeNames[docType]} based on the context provided.` }
+        ], {
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.7,
+            max_tokens: 2048,
+        });
 
-        const generatedContent = response.data.choices[0].message.content;
+        if (!data?.choices?.[0]?.message?.content) {
+            throw new Error("Invalid response from AI provider");
+        }
+
+        const generatedContent = data.choices[0].message.content;
 
         // Auto-save to history
         const [savedDoc] = await db.insert(writingStudioDocsTable).values({
