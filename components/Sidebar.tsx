@@ -8,6 +8,7 @@ import { useClerk } from '@clerk/nextjs'
 import {
     LayoutDashboard,
     Wrench,
+    BookOpen,
     History,
     CreditCard,
     User,

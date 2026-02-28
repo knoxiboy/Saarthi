@@ -76,20 +76,19 @@ Ensure the milestones are distributed logically across the whole period.
         const aiOutput = JSON.parse(response.data.choices[0].message.content);
 
         // Save to Database
-        await db.insert(roadmapsTable).values({
+        const inserted = await db.insert(roadmapsTable).values({
             userEmail: userEmail,
             targetField: targetField,
             roadmapData: JSON.stringify(aiOutput)
-        });
+        }).returning();
 
-        return NextResponse.json(aiOutput);
+        return NextResponse.json({
+            ...aiOutput,
+            id: inserted[0].id
+        });
 
     } catch (error: any) {
-        console.error("Roadmap Generation Error DETAILS:", {
-            message: error.message,
-            response: error.response?.data,
-            stack: error.stack
-        });
+        console.error("Roadmap Generation Error:", error);
         return NextResponse.json({
             error: error.message || "Failed to generate roadmap",
             details: error.response?.data || error.message

@@ -1,0 +1,15 @@
+[dotenv@17.3.1] injecting env (14) from .env -- tip: ≡ƒ¢í∩╕Å auth for agents: https://vestauth.com
+Testing Bedrock with Region: us-east-1
+Access Key ID: PRESENT
+Sending request to Bedrock...
+Bedrock Test Error Details:
+Message: Model use case details have not been submitted for this account. Fill out the Anthropic use case details form before using the model. If you have already filled out the form, try again in 15 minutes.
+Code: undefined
+Metadata: {
+  httpStatusCode: 404,
+  requestId: '49f86da4-a3db-4839-8855-470c77e1c71b',
+  extendedRequestId: undefined,
+  cfId: undefined,
+  attempts: 1,
+  totalRetryDelay: 0
+}

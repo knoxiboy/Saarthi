@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import {
     Map,
     Sparkles,
@@ -20,6 +21,7 @@ import {
 import axios from "axios"
 import Link from "next/link"
 import { toast } from "sonner"
+import { createCourseAction } from "@/app/actions/courseActions"
 import {
     Dialog,
     DialogContent,
@@ -55,6 +57,9 @@ export default function RoadmapPage() {
     const [view, setView] = useState<"generator" | "history">("generator")
     const [history, setHistory] = useState<RoadmapResult[]>([])
     const [fetchingHistory, setFetchingHistory] = useState(false)
+    const [generatingCourse, setGeneratingCourse] = useState(false)
+
+    const router = useRouter()
 
     const fetchHistory = useCallback(async () => {
         setFetchingHistory(true)
@@ -117,6 +122,31 @@ export default function RoadmapPage() {
         }
     }
 
+    const handleBuildCourse = async (topic: string, milestone?: Milestone, index?: number) => {
+        setGeneratingCourse(true)
+        const loadingToast = toast.loading("Generating your personalized course content...")
+        try {
+            const result = await createCourseAction(
+                topic,
+                milestone?.goal || "",
+                Number(roadmap?.id),
+                index
+            )
+
+            if (result.success) {
+                toast.success("Course generated successfully!", { id: loadingToast })
+                router.push(`/ai-tools/course?id=${result.courseId}`)
+            } else {
+                throw new Error(result.error)
+            }
+        } catch (err: any) {
+            console.error("COURSE GENERATION ERROR:", err)
+            toast.error(err.message || "Failed to generate course", { id: loadingToast })
+        } finally {
+            setGeneratingCourse(false)
+        }
+    }
+
     return (
         <div className="min-h-screen bg-slate-950">
             {/* Detailed Milestone Dialog */}
@@ -136,6 +166,14 @@ export default function RoadmapPage() {
                                 <DialogDescription className="text-slate-400 font-medium">
                                     Deep dive and actionable steps for this milestone.
                                 </DialogDescription>
+                                <button
+                                    onClick={() => selectedMilestone && handleBuildCourse(selectedMilestone.goal, selectedMilestone)}
+                                    disabled={generatingCourse}
+                                    className="mt-4 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition-all uppercase tracking-widest flex items-center justify-center gap-2"
+                                >
+                                    {generatingCourse ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                    Build Detailed Course
+                                </button>
                             </DialogHeader>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -236,6 +274,16 @@ export default function RoadmapPage() {
                                 >
                                     {view === "history" ? "Back to History" : "Build Another Path"}
                                 </button>
+                                {roadmap && (
+                                    <button
+                                        onClick={() => handleBuildCourse(roadmap.title)}
+                                        disabled={generatingCourse}
+                                        className="px-6 py-3 ml-4 bg-blue-600 text-white rounded-xl text-xs font-black hover:bg-blue-700 transition-all uppercase tracking-widest shadow-xl flex items-center gap-2 inline-flex"
+                                    >
+                                        {generatingCourse ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
+                                        Generate Full Course
+                                    </button>
+                                )}
                             </div>
                         </div>
 
