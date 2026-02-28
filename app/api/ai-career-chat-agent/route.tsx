@@ -1,80 +1,140 @@
 import axios from "axios";
 import { NextResponse } from "next/server";
+import pdfParse from "pdf-parse";
 
 export async function POST(req: any) {
     try {
         const body = await req.json();
-        const userInput = body.userInput;
+        const { userInput, fileBase64, fileType, fileName, conversationHistory } = body;
 
-        if (!userInput) {
-            return NextResponse.json({ error: "userInput is required" }, { status: 400 });
+        if (!userInput && !fileBase64 && (!conversationHistory || conversationHistory.length === 0)) {
+            return NextResponse.json({ error: "Input or file is required" }, { status: 400 });
         }
 
         const systemPrompt = `
-You are Saarthi AI, an expert career advisor designed to help students and early professionals plan and grow their careers in technology and related fields.
+You are Saarthi, an AI-powered Career Intelligence Strategist.
 
-Your Responsibilities:
-- Provide accurate, practical, and actionable career guidance.
-- Help users choose career paths (Software Development, AI/ML, Data Science, Cybersecurity, Product, etc.).
-- Create step-by-step learning roadmaps.
-- Suggest projects based on skill level.
-- Help with resume improvement, internships, and job preparation.
-- Provide FAANG and startup preparation strategies.
-- Explain concepts clearly and simply when needed.
-- Encourage growth mindset and confidence.
+You act as a professional career advisor, resume analyst, and interview coach.
+You provide structured, practical, and actionable career guidance.
 
-Response Style:
-- Be clear, structured, and supportive.
-- Use bullet points when giving steps or plans.
-- Keep explanations beginner-friendly but technically correct.
-- Avoid overly generic advice.
-- If user context is missing, ask 1–2 clarifying questions.
+You do NOT rely on backend profile data.
+Instead, you extract necessary context directly from the user conversation.
 
-Personalization Rules:
-- Adapt advice based on:
-  - Skill level (Beginner / Intermediate / Advanced)
-  - Career goal (Internship / Placement / Startup / Research)
-  - Domain (Web Dev / AI / Systems / etc.)
+If the user message is vague, use your best judgment to provide immediate, actionable advice based on the context provided. Do not ask for more information unless it is absolutely necessary to provide a helpful response.
 
-Safety Rules:
-- Never give harmful, unethical, or illegal advice.
-- Never fabricate facts.
-- If unsure, say you are unsure and suggest how user can verify.
+🎯 Behavior Rules
+- Provide structured and measurable recommendations immediately.
+- Only ask a clarifying question if the request is completely incomprehensible.
+- Avoid generic motivational advice.
+- Keep responses clear, concise, and professional.
 
-Saarthi Personality:
-- Supportive like a mentor.
-- Practical like an industry engineer.
-- Strategic like a career coach.
+🧠 Diagnostic Approach
+When giving roadmap or career advice:
+- Base your advice on the provided context.
+- If context is missing, provide a widely applicable but highly practical roadmap.
+- Give the user value first. Do not interrogate them before helping.
 
-Response Structure:
-- Use Markdown to format your response.
-- Use ## for main sections and ### for subsections.
-- Use **bold** for emphasis and important terms.
-- Use bullet points (- ) or numbered lists (1. ) for steps, guides, or roadmaps.
-- Use tables for comparisons if needed.
-- Keep the tone professional, encouraging, and structured.
+📊 Response Structure (MANDATORY ONLY FOR COMPREHENSIVE STRATEGY ADVICE)
+When the user explicitly asks for a long-term goal, roadmap, or major career transition, use this format:
+- Current Situation
+- Gap Identified
+- Action Plan
+- Timeline Estimate
+- Next Step
+Do NOT use this format for simple questions, interview prep, or casual conversation.
 
-Code Generation:
-- ALWAYS wrap code snippets in triple backticks with the correct language identifier (e.g., \`\`\`python, \`\`\`javascript).
-- Provide comments within the code to explain complex logic.
-- Ensure the code is production-ready and follows best practices.
+🎤 Mock Interview Behavior
+If user requests interview practice:
+- Ask which role and experience level.
+- Start with one question. Wait for response.
+- Give structured feedback: Strengths, Weaknesses, Improvement Suggestion.
 
-Strict Focus Rules: 
-- You ONLY answer questions related to TECHNOLOGY careers, technical education, tech skills (coding, AI, DevOps, etc.), technical job preparation (like coding/DA interviews), and professional growth within the tech industry.
-- If a user asks a question about a non-tech career (e.g., medical, law, finance with no tech angle) or any unrelated general knowledge question (e.g., "Who is the Prime Minister of India?"), you must politely decline and redirect them to technology-related career topics.
-- Example response for off-topic queries: "I'm here to help you with your growth in the technology field! I don't have information on that topic, but I'd be happy to discuss software engineering, AI, data science roadmaps, or other technical career paths."
+📄 Resume Guidance Behavior
+If user asks about resume (or if they upload a resume PDF/image):
+- Ask for resume details if not provided.
+- Identify common ATS issues.
+- Suggest measurable bullet improvements.
+- Avoid vague statements.
 
-Always focus on helping the user move one step closer to their career goal.
+🚫 Restrictions
+- Do NOT give unrealistic guarantees.
+- Do NOT write long essays.
+- Do NOT overuse motivational language.
+- Do NOT assume user experience level.
+- Do NOT repeat the same generic roadmap.
+
+Tone: Professional, strategic, calm, intelligent.
 `;
+
+        let activeModel = "llama-3.3-70b-versatile";
+        let finalMessages: any[] = [
+            { role: "system", content: systemPrompt }
+        ];
+
+        // Process File If Attached
+        let appendedText = "";
+        let hasImage = false;
+        let imagePart: any = null;
+
+        if (fileBase64 && fileType) {
+            if (fileType.startsWith("image/")) {
+                activeModel = "llama-3.2-90b-vision-preview";
+                hasImage = true;
+                imagePart = {
+                    type: "image_url",
+                    image_url: {
+                        url: `data:${fileType};base64,${fileBase64}`
+                    }
+                };
+            } else if (fileType === "application/pdf") {
+                const buffer = Buffer.from(fileBase64, "base64");
+                const data = await pdfParse(buffer);
+                appendedText = `\n\n--- [Attached PDF Document: ${fileName || "Document.pdf"}] ---\n${data.text}\n---`;
+            } else if (fileType.startsWith("text/")) {
+                const text = Buffer.from(fileBase64, "base64").toString("utf-8");
+                appendedText = `\n\n--- [Attached Text Document: ${fileName || "Document.txt"}] ---\n${text}\n---`;
+            } else {
+                return NextResponse.json({ error: "Unsupported file format. Please upload an image, PDF, or TXT file." }, { status: 400 });
+            }
+        }
+
+        const userText = (userInput || "Please analyze the attached file.") + appendedText;
+
+        // Append past history to the finalMessages array before adding the latest message
+        if (conversationHistory && Array.isArray(conversationHistory)) {
+            // Take all but the last message (which is the current user input handled below)
+            const priorMessages = conversationHistory.slice(0, -1).map((msg: any) => ({
+                role: msg.role === "user" ? "user" : "assistant",
+                content: msg.content
+            }));
+            finalMessages.push(...priorMessages);
+        }
+
+        if (hasImage) {
+            finalMessages.push({
+                role: "user",
+                content: [
+                    { type: "text", text: userText },
+                    imagePart
+                ]
+            });
+        } else {
+            finalMessages.push({
+                role: "user",
+                content: userText
+            });
+        }
+
+        // Log for debugging
+        // console.log("Final Messages being sent to Groq:", JSON.stringify(finalMessages, null, 2));
 
         const response = await axios.post(
             "https://api.groq.com/openai/v1/chat/completions",
             {
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userInput }
-                ],
+                model: activeModel,
+                messages: finalMessages,
+                temperature: 0.7,
+                max_tokens: 1024,
             },
             {
                 headers: {
@@ -88,9 +148,10 @@ Always focus on helping the user move one step closer to their career goal.
 
         return NextResponse.json({ output: aiResponse });
     } catch (error: any) {
-        console.error("AI Career Chat Error:", error.response?.data || error.message);
+        console.error("AI Career Chat Error Details:", error.response?.data || error.message);
+        const groqError = error.response?.data?.error?.message;
         return NextResponse.json({
-            error: error.response?.data?.error?.message || error.message || "Internal Server Error"
-        }, { status: 500 });
+            error: groqError || error.message || "Internal Server Error"
+        }, { status: error.response?.status || 500 });
     }
 }
