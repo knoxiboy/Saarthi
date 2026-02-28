@@ -95,7 +95,7 @@ export default function Home() {
               <SignedOut>
                 <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                   <button className="relative group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-bold tracking-wide transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(139,92,246,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3 w-full sm:w-auto">
-                    Go to Dashboard
+                    Get Started
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </SignUpButton>
