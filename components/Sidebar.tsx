@@ -8,6 +8,7 @@ import { useClerk } from '@clerk/nextjs'
 import {
     LayoutDashboard,
     Wrench,
+    BookOpen,
     History,
     CreditCard,
     User,
@@ -19,6 +20,7 @@ import {
 const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { name: 'Features', icon: Wrench, href: '/ai-tools' },
+    { name: 'Course Generator', icon: BookOpen, href: '/ai-tools/course' },
     { name: 'My History', icon: History, href: '/history' },
     { name: 'Profile', icon: User, href: '/dashboard/profile' },
 ]
