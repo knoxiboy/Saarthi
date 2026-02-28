@@ -16,13 +16,13 @@ import Link from "next/link"
 
 const tools = [
     {
-        title: "Resume Analyzer",
-        description: "Get a professional ATS score and 2-3 pages of detailed, actionable feedback to land your dream job.",
+        title: "Job Readiness Analyzer",
+        description: "Get a comprehensive Job Readiness Score, missing skill gaps, and an AI-driven actionable roadmap.",
         icon: FileSearch,
         href: "/ai-tools/resume-analyzer",
         color: "from-blue-600 to-cyan-500",
-        tag: "Most Popular",
-        features: ["ATS Scoring", "Keyword Analysis", "Multi-page Report"]
+        tag: "Career Intelligence",
+        features: ["Score Breakdown", "Gap Analysis", "Actionable Plan"]
     },
     {
         title: "Roadmap Generator",

@@ -28,10 +28,24 @@ export interface RoadmapItem {
 export interface AnalysisResult {
     score: number;
     summary: string;
+    scoreBreakdown: {
+        skills: number;
+        projects: number;
+        experience: number;
+        ats: number;
+        impact: number;
+        industryFit: number;
+    };
     strengths: string[];
-    weaknesses: string[];
+    criticalGaps: string[];
     improvementPoints: string[];
     missingKeywords: string[];
+    sectionwiseAnalysis: {
+        education: string;
+        experience: string;
+        projects: string;
+        skills: string;
+    };
 }
 
 export interface ResumeAnalysisItem {
