@@ -57,3 +57,13 @@ export const resumesTable = pgTable("resumes", {
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp().defaultNow().notNull(),
 });
+
+export const coursesTable = pgTable("courses", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    roadmapId: integer(), // Optional: link to a specific roadmap
+    milestoneId: integer(), // Optional: link to a specific milestone index or ID
+    title: varchar({ length: 255 }).notNull(),
+    content: text().notNull(), // Store JSON string with text and video links
+    createdAt: timestamp().defaultNow().notNull(),
+});
