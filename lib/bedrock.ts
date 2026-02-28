@@ -1,8 +1,5 @@
-import axios from "axios";
+import { chatWithGroq } from "./groq";
 import { z } from "zod";
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_BASE_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 // Zod Schemas for Validation
 const CourseOutlineSchema = z.object({
@@ -40,29 +37,27 @@ const QuizSchema = z.object({
     }))
 });
 
-async function callGroq(model: string, systemPrompt: string, userPrompt: string, jsonMode: boolean = true) {
+/**
+ * Executes a call to Groq with Premium Engine specific handling
+ */
+async function callGroqPremium(model: string, systemPrompt: string, userPrompt: string, jsonMode: boolean = true) {
     try {
-        const response = await axios.post(
-            GROQ_BASE_URL,
-            {
-                model: model,
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userPrompt }
-                ],
-                response_format: jsonMode ? { type: "json_object" } : undefined,
-                temperature: 0.7
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${GROQ_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-        return response.data.choices[0].message.content;
+        const responseData = await chatWithGroq([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+        ], {
+            model: model,
+            response_format: jsonMode ? { type: "json_object" } : undefined,
+            temperature: 0.7
+        });
+
+        if (!responseData?.choices?.[0]?.message?.content) {
+            throw new Error("Empty response from Groq Engine");
+        }
+
+        return responseData.choices[0].message.content;
     } catch (error: any) {
-        console.error(`[GROQ_ERROR] API Call Failed:`, error.response?.data || error.message);
+        console.error(`[PREMIUM_GROQ_ERROR] API Call Failed:`, error.message);
         throw error;
     }
 }
@@ -101,7 +96,7 @@ export async function generateCourseOutline(topic: string, level: string, durati
     }`;
 
     try {
-        const raw = await callGroq("llama-3.3-70b-versatile", systemPrompt, userPrompt);
+        const raw = await callGroqPremium("llama-3.3-70b-versatile", systemPrompt, userPrompt);
         console.log("[BEDROCK] Raw Outline Response:", raw);
 
         let parsed;
@@ -170,7 +165,7 @@ export async function generateLessonContent(lessonTitle: string, focus: string, 
     let attempt = 0;
     while (attempt < 2) {
         try {
-            const raw = await callGroq("llama-3.3-70b-versatile", systemPrompt, userPrompt);
+            const raw = await callGroqPremium("llama-3.3-70b-versatile", systemPrompt, userPrompt);
             const parsed = LessonContentSchema.parse(JSON.parse(raw));
 
             // Basic word count enforcement
@@ -215,7 +210,7 @@ export async function generateQuiz(content: string) {
     }`;
 
     try {
-        const raw = await callGroq("llama-3.1-8b-instant", systemPrompt, userPrompt);
+        const raw = await callGroqPremium("llama-3.1-8b-instant", systemPrompt, userPrompt);
         return QuizSchema.parse(JSON.parse(raw));
     } catch (error) {
         console.error("Quiz Generation Failed:", error);
