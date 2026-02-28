@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Plus, Send, History, X, MessageSquare, Copy, Check, Trash2, Sparkles, Loader2, Share2, Globe, Link as LinkIcon, ArrowLeft } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { Plus, Send, History, X, MessageSquare, Copy, Check, Trash2, Sparkles, Loader2, Share2, Globe, Link as LinkIcon, ArrowLeft, Paperclip, FileText as FileIcon, Image as ImageIcon } from "lucide-react"
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -95,6 +95,44 @@ export default function AIChatPage() {
     const [isShared, setIsShared] = useState(false)
     const [sharingLoading, setSharingLoading] = useState(false)
     const [historyLoading, setHistoryLoading] = useState(false)
+    const [attachedFile, setAttachedFile] = useState<File | null>(null)
+    const [filePreview, setFilePreview] = useState<string | null>(null)
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("File size must be under 5MB");
+            return;
+        }
+
+        setAttachedFile(file);
+        if (file.type.startsWith("image/")) {
+            const url = URL.createObjectURL(file);
+            setFilePreview(url);
+        } else {
+            setFilePreview(null);
+        }
+    };
+
+    const handleRemoveFile = () => {
+        setAttachedFile(null);
+        setFilePreview(null);
+    };
+
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                const result = reader.result as string;
+                const base64 = result.split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = error => reject(error);
+        });
+    };
 
     useEffect(() => {
         if (showHistory) {
@@ -179,30 +217,51 @@ export default function AIChatPage() {
 
     const handleSend = async (textOverride?: string) => {
         const messageText = textOverride || input
-        if (!messageText.trim() || loading) return
+        if ((!messageText.trim() && !attachedFile) || loading) return
 
         let activeChatId = currentChatId
         let activeTitle = chatTitle
 
         if (!activeChatId) {
             activeChatId = crypto.randomUUID()
-            activeTitle = messageText.length > 40 ? messageText.substring(0, 40) + "..." : messageText
+            activeTitle = messageText.length > 40 ? messageText.substring(0, 40) + "..." : messageText || "File Upload"
             setCurrentChatId(activeChatId)
             setChatTitle(activeTitle)
         }
 
-        const userMessage: Message = { role: "user", content: messageText }
+        const userMessage: Message = {
+            role: "user",
+            content: messageText + (attachedFile ? `\n\n[Attached File: ${attachedFile.name}]` : "")
+        }
         setMessages(prev => [...prev, userMessage])
+
+        const fileToSend = attachedFile;
         setInput("")
+        setAttachedFile(null)
+        setFilePreview(null)
         setLoading(true)
 
-        if (activeChatId && activeTitle) {
-            saveMessageToHistory("user", messageText, activeChatId, activeTitle)
-        }
-
         try {
+            let fileBase64 = null;
+            let fileType = null;
+            let fileName = null;
+
+            if (fileToSend) {
+                fileBase64 = await fileToBase64(fileToSend);
+                fileType = fileToSend.type;
+                fileName = fileToSend.name;
+            }
+
+            if (activeChatId && activeTitle) {
+                saveMessageToHistory("user", userMessage.content, activeChatId, activeTitle)
+            }
+
             const result = await axios.post("/api/ai-career-chat-agent", {
                 userInput: messageText,
+                fileBase64,
+                fileType,
+                fileName,
+                conversationHistory: [...messages, userMessage]
             })
 
             const aiResponse = result.data.output;
@@ -219,10 +278,21 @@ export default function AIChatPage() {
                 saveMessageToHistory("assistant", aiResponse, activeChatId, activeTitle)
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Chat Error:", error)
-            const errorMessage: Message = { role: "assistant", content: "Sorry, I encountered an error. Please try again." }
-            setMessages(prev => [...prev, errorMessage])
+            const status = error.response?.status;
+            let errorMessage = "Sorry, I encountered an error. Please try again.";
+
+            if (status === 429) {
+                errorMessage = "The AI is currently under high load (Too Many Requests). Please wait a few seconds and try again.";
+            } else if (status === 413) {
+                errorMessage = "The file or message is too large for the AI to process. Please try a smaller one.";
+            } else if (error.response?.data?.error) {
+                errorMessage = error.response.data.error;
+            }
+
+            const aiErrorMessage: Message = { role: "assistant", content: errorMessage }
+            setMessages(prev => [...prev, aiErrorMessage])
             setLoading(false)
         }
     }
@@ -255,6 +325,19 @@ export default function AIChatPage() {
         } catch (error) {
             console.error("Error deleting chat:", error);
             toast.error("Failed to delete chat history");
+        }
+    };
+
+    const handleDeleteAllChats = async () => {
+        try {
+            await axios.delete(`/api/ai-career-chat-agent/history?chatId=all`);
+            toast.success("All chat history deleted successfully");
+            startNewChat();
+            fetchHistory();
+            setShowHistory(false);
+        } catch (error) {
+            console.error("Error deleting all chats:", error);
+            toast.error("Failed to delete all chat history");
         }
     };
 
@@ -449,33 +532,66 @@ export default function AIChatPage() {
 
             {/* Bottom Input Area */}
             <div className="px-6 pb-5 pt-4 bg-transparent shrink-0 mt-auto relative z-10 w-full">
-                <div className="max-w-7xl mx-auto flex gap-4">
-                    <div className="flex-1 relative group">
-                        <div className="absolute inset-0 bg-blue-500/10 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity rounded-[2rem]" />
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Message Saarthi AI..."
-                            className="relative w-full px-8 py-3.5 bg-white/5 border border-white/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-white placeholder:text-slate-600 shadow-2xl backdrop-blur-3xl text-lg font-medium"
-                        />
+                <div className="max-w-7xl mx-auto flex flex-col gap-3">
+
+                    {/* Attachment Preview Area */}
+                    {attachedFile && (
+                        <div className="flex items-center gap-3 px-4 py-3 bg-white/10 backdrop-blur-3xl border border-white/20 rounded-2xl w-fit animate-in fade-in slide-in-from-bottom-2">
+                            {filePreview ? (
+                                <img src={filePreview} alt="Preview" className="w-10 h-10 rounded-lg object-cover" />
+                            ) : (
+                                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                                    <FileIcon className="w-5 h-5 text-indigo-400" />
+                                </div>
+                            )}
+                            <div className="flex flex-col">
+                                <span className="text-sm font-bold text-white max-w-[200px] truncate">{attachedFile.name}</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{(attachedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                            </div>
+                            <button onClick={handleRemoveFile} className="ml-2 w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors group">
+                                <X className="w-4 h-4 text-slate-400 group-hover:text-red-400" />
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="flex gap-4">
+                        <div className="flex-1 relative group">
+                            <div className="absolute inset-0 bg-blue-500/10 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity rounded-[2rem]" />
+                            <div className="relative w-full flex items-center">
+                                <label className="absolute left-2 cursor-pointer p-3 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors group/attach z-10">
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                        accept="image/*,.pdf,.txt"
+                                    />
+                                    <Paperclip className="w-5 h-5 group-hover/attach:scale-110 transition-transform" />
+                                </label>
+                                <input
+                                    type="text"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                                    placeholder="Message Saarthi AI..."
+                                    className="relative w-full pl-14 pr-6 py-4 bg-white/5 border border-white/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-white placeholder:text-slate-500 shadow-2xl backdrop-blur-3xl text-lg font-medium"
+                                />
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => handleSend()}
+                            disabled={loading || (!input.trim() && !attachedFile)}
+                            className="w-16 h-16 flex items-center justify-center bg-white/50 text-black border border-white/20 rounded-[2rem] disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl shrink-0 hover:bg-white hover:scale-105 active:scale-95 transition-all group"
+                        >
+                            {loading ? (
+                                <Loader2 className="w-6 h-6 animate-spin text-black" />
+                            ) : (
+                                <Send className="w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            )}
+                        </button>
                     </div>
-                    <button
-                        onClick={() => handleSend()}
-                        disabled={loading || !input.trim()}
-                        className="w-14 h-14 flex items-center justify-center bg-white text-black rounded-[1.5rem] disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl shrink-0 hover:bg-slate-200 hover:scale-105 active:scale-95 transition-all group"
-                    >
-                        {loading ? (
-                            <Loader2 className="w-5 h-5 animate-spin text-black" />
-                        ) : (
-                            <Send className="w-5 h-5 rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                        )}
-                    </button>
                 </div>
             </div>
-
-            {/* History Overlay Panel */}
+            {/* History Overlay Panel moved outside to root */}
             {showHistory && (
                 <div className="absolute inset-0 z-[100] flex justify-end">
                     <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xl" onClick={() => setShowHistory(false)} />
@@ -487,9 +603,40 @@ export default function AIChatPage() {
                                 <h3 className="text-2xl font-black text-white uppercase tracking-tight text-left">Chat Archive</h3>
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 text-left">Review your past sessions</p>
                             </div>
-                            <button onClick={() => setShowHistory(false)} className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all group">
-                                <X className="w-6 h-6 text-slate-400 group-hover:text-white group-hover:rotate-90 transition-all duration-500" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {history.length > 0 && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <button
+                                                className="w-12 h-12 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 rounded-2xl transition-all group"
+                                                title="Clear All History"
+                                            >
+                                                <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                            </button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent className="rounded-[2.5rem] bg-slate-900 border-white/10 text-white">
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle className="uppercase tracking-tight font-black text-left">Clear All History?</AlertDialogTitle>
+                                                <AlertDialogDescription className="text-slate-400 text-left">
+                                                    This will permanently delete all your chat sessions. This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl font-bold uppercase text-[10px] tracking-widest">Cancel</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={handleDeleteAllChats}
+                                                    className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest"
+                                                >
+                                                    Clear All
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )}
+                                <button onClick={() => setShowHistory(false)} className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all group">
+                                    <X className="w-6 h-6 text-slate-400 group-hover:text-white group-hover:rotate-90 transition-all duration-500" />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-8 space-y-4 custom-scrollbar relative z-10">

@@ -59,6 +59,16 @@ export const resumesTable = pgTable("resumes", {
     updatedAt: timestamp().defaultNow().notNull(),
 });
 
+export const writingStudioDocsTable = pgTable("writing_studio_docs", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    docType: varchar({ length: 50 }).notNull(), // e.g., 'cover_letter', 'sop', 'motivation_letter', 'proposal'
+    context: text().notNull(), // Job Description, Company context, etc.
+    userDetails: text().notNull(), // Experience, achievements, summary
+    generatedContent: text().notNull(), // The final output
+    createdAt: timestamp().defaultNow().notNull(),
+});
+
 export const coursesTable = pgTable("courses", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userEmail: varchar({ length: 255 }).notNull(),

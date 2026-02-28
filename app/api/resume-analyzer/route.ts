@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import axios from "axios";
-import { PDFParse } from "pdf-parse";
+import { chatWithGroq } from "@/lib/groq";
+// Use pdf-parse-fork which is more stable in Next.js environments
+import pdf from "pdf-parse-fork";
 import { db } from "@/configs/db";
 import { resumeAnalysisTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
@@ -18,17 +19,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Resume file is required" }, { status: 400 });
         }
 
-        // 1. Extract text from PDF using pdf-parse (Robust, no worker issues)
+        // 1. Extract text from PDF using pdf-parse (Robust, function-based)
         const buffer = Buffer.from(await file.arrayBuffer());
         let resumeText = "";
 
         try {
-            const parser = new PDFParse({ data: buffer });
-            const data = await parser.getText();
+            // Safety check for pdfParse
+            const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
+            const data = await pdfParse(buffer);
             resumeText = data.text;
         } catch (parseError: any) {
             console.error("PDF Parsing Error:", parseError);
-            throw new Error(`PDF Extraction failed: ${parseError.message}`);
+            return NextResponse.json({
+                error: "Failed to extract text from the PDF. Please ensure it's a valid PDF document.",
+                detail: parseError.message
+            }, { status: 422 });
         }
 
         if (!resumeText || resumeText.trim().length === 0) {
@@ -101,28 +106,22 @@ RESUME TEXT:
 ${resumeText}
 `;
 
-        const response = await axios.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            {
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userPrompt }
-                ],
-                response_format: { type: "json_object" }
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        const responseData = await chatWithGroq([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+        ], {
+            model: "llama-3.3-70b-versatile",
+            response_format: { type: "json_object" }
+        });
 
         const user = await currentUser();
         const userEmail = user?.primaryEmailAddress?.emailAddress;
 
-        const aiOutput = JSON.parse(response.data.choices[0].message.content);
+        if (!responseData?.choices?.[0]?.message?.content) {
+            throw new Error("Invalid response from AI provider");
+        }
+
+        const aiOutput = JSON.parse(responseData.choices[0].message.content);
 
         // Save to Database if user is authenticated
         if (userEmail) {

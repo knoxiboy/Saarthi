@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import axios from "axios";
+import { chatWithGroq } from "@/lib/groq";
 import { db } from "@/configs/db";
 import { roadmapsTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
@@ -55,25 +55,19 @@ Generate a comprehensive roadmap for mastering ${targetField} that STRICTLY span
 Ensure the milestones are distributed logically across the whole period.
 `;
 
-        const response = await axios.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            {
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userPrompt }
-                ],
-                response_format: { type: "json_object" }
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        const responseData = await chatWithGroq([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+        ], {
+            model: "llama-3.3-70b-versatile",
+            response_format: { type: "json_object" }
+        });
 
-        const aiOutput = JSON.parse(response.data.choices[0].message.content);
+        if (!responseData?.choices?.[0]?.message?.content) {
+            throw new Error("Invalid response from AI provider");
+        }
+
+        const aiOutput = JSON.parse(responseData.choices[0].message.content);
 
         // Save to Database
         const inserted = await db.insert(roadmapsTable).values({

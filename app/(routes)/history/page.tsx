@@ -73,10 +73,17 @@ function HistoryContent() {
 
     const fetchCoverLetters = useCallback(async () => {
         try {
-            const response = await axios.get("/api/cover-letter/history")
-            setCoverLetters(response.data)
+            const response = await axios.get("/api/writing-studio/history?docType=cover_letter")
+            const formatted = response.data.map((item: any) => ({
+                id: item.id,
+                jobDescription: item.context,
+                coverLetter: item.generatedContent,
+                createdAt: item.createdAt,
+                userDetails: item.userDetails
+            }))
+            setCoverLetters(formatted)
         } catch (err) {
-            console.error("Failed to fetch cover letter history:", err)
+            console.error("Failed to fetch writing studio history (cover letters):", err)
         }
     }, [])
 
@@ -136,11 +143,11 @@ function HistoryContent() {
 
     const handleDeleteCoverLetter = async (id: number) => {
         try {
-            await axios.delete(`/api/cover-letter/history?id=${id}`)
-            toast.success("Cover letter deleted successfully")
+            await axios.delete(`/api/writing-studio/history?id=${id}`)
+            toast.success("Document deleted successfully")
             setCoverLetters(coverLetters.filter(item => item.id !== id))
         } catch (err) {
-            toast.error("Failed to delete cover letter")
+            toast.error("Failed to delete document")
         }
     }
 
@@ -324,7 +331,7 @@ function HistoryContent() {
                                         icon={<FileText className="w-10 h-10" />}
                                         title="No Cover Letters"
                                         description={searchQuery ? "No matching cover letters found." : "Generated cover letters will be stored here."}
-                                        action={!searchQuery ? { label: "Create Cover Letter", href: "/ai-tools/cover-letter" } : undefined}
+                                        action={!searchQuery ? { label: "Create Document", href: "/ai-tools/writing-studio" } : undefined}
                                     />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -334,7 +341,7 @@ function HistoryContent() {
                                                 icon={<FileText className="w-6 h-6" />}
                                                 title={item.jobDescription}
                                                 date={new Date(item.createdAt).toLocaleDateString()}
-                                                href="/ai-tools/cover-letter"
+                                                href="/ai-tools/writing-studio"
                                                 onDelete={() => handleDeleteCoverLetter(item.id)}
                                                 deleteTitle="Delete Cover Letter?"
                                                 deleteDescription="This action will permanently delete this cover letter."

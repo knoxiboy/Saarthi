@@ -11,6 +11,7 @@ import {
     Zap,
     Target,
     ShieldCheck,
+    PenTool,
     BookOpen
 } from "lucide-react"
 import Link from "next/link"
@@ -35,13 +36,13 @@ const tools = [
         features: ["Step-by-step Guides", "Resource Links", "Skill Tracking"]
     },
     {
-        title: "Cover Letter AI",
-        description: "Generate high-converting, professional cover letters that match your resume and job description perfectly.",
-        icon: FileText,
-        href: "/ai-tools/cover-letter",
-        color: "from-orange-600 to-amber-500",
+        title: "AI Writing Studio",
+        description: "Generate tailored, opportunity-winning documents (Cover Letters, SOPs, Proposals) powered by intelligent analysis.",
+        icon: PenTool,
+        href: "/ai-tools/writing-studio",
+        color: "from-blue-600 to-indigo-500",
         tag: "Job Ready",
-        features: ["Smart Matching", "Tone Selection", "Instant Export"]
+        features: ["Cover Letters & SOPs", "Tone Selection", "Document Vault"]
     },
     {
         title: "Career AI Chat",

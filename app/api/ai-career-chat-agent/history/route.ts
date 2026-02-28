@@ -95,6 +95,12 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: "Chat ID is required" }, { status: 400 });
         }
 
+        if (chatId === "all") {
+            await db.delete(chatHistoryTable)
+                .where(eq(chatHistoryTable.userEmail, email));
+            return NextResponse.json({ message: "All chat history deleted successfully" });
+        }
+
         // Delete all messages for this chatId and user
         const result = await db.delete(chatHistoryTable)
             .where(
