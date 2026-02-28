@@ -1,0 +1,27 @@
+[dotenv@17.3.1] injecting env (14) from .env -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`
+Testing Groq Integration...
+API Key: PRESENT
+Sending request to Groq (llama-3.3-70b-versatile)...
+Response Status: 200
+Response Preview: {
+  "courseTitle":"Basic React Hooks",
+   "courseDescription":"Learn the fundamentals of React Hooks and how to use them to manage state and Side Effects in functional components",
+   "courseOutline":...
+SUCCESS: Groq is working for course generation.
+
+Testing Quiz Generation (llama-3.1-8b-instant)...
+Quiz Response Preview: {
+  "questions": [
+      {
+         "title": "What is the purpose of the useEffect hook in React?",
+         "options": [
+            "To handle side effects in a component",
+            "To define a component's lifecycle methods",
+            "To manage a component's state",
+            "To handle user interactions"
+         ],
+         "answer": "0"
+      }
+   ]
+}
+SUCCESS: Groq is working for quiz generation.

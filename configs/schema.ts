@@ -1,4 +1,5 @@
 import { integer, pgTable, varchar, text, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 export const usersTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -64,6 +65,45 @@ export const coursesTable = pgTable("courses", {
     roadmapId: integer(), // Optional: link to a specific roadmap
     milestoneId: integer(), // Optional: link to a specific milestone index or ID
     title: varchar({ length: 255 }).notNull(),
-    content: text().notNull(), // Store JSON string with text and video links
+    content: text().notNull(), // Store JSON string with text and video links (Old version)
     createdAt: timestamp().defaultNow().notNull(),
 });
+
+export const courseModulesTable = pgTable("course_modules", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    courseId: integer().references(() => coursesTable.id),
+    title: varchar({ length: 255 }).notNull(),
+    order: integer().notNull(),
+});
+
+export const courseLessonsTable = pgTable("course_lessons", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    moduleId: integer().references(() => courseModulesTable.id),
+    title: varchar({ length: 255 }).notNull(),
+    content: text().notNull(),
+    takeaways: text().notNull(), // Store JSON string
+    summary: text(), // Added for module/lesson summary
+    quiz: text(), // Added for module/lesson quiz
+    videoUrl: text(),
+    order: integer().notNull(),
+});
+
+// Relations
+export const coursesRelations = relations(coursesTable, ({ many }) => ({
+    modules: many(courseModulesTable),
+}));
+
+export const courseModulesRelations = relations(courseModulesTable, ({ one, many }) => ({
+    course: one(coursesTable, {
+        fields: [courseModulesTable.courseId],
+        references: [coursesTable.id],
+    }),
+    lessons: many(courseLessonsTable),
+}));
+
+export const courseLessonsRelations = relations(courseLessonsTable, ({ one }) => ({
+    module: one(courseModulesTable, {
+        fields: [courseLessonsTable.moduleId],
+        references: [courseModulesTable.id],
+    }),
+}));

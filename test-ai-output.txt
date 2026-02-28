@@ -1,0 +1,31 @@
+[dotenv@17.3.1] injecting env (14) from .env -- tip: ΓÜÖ∩╕Å  write to custom object with { processEnv: myObject }
+Testing Groq Integration...
+API Key: PRESENT
+Sending request to Groq (llama-3.3-70b-versatile)...
+Response Status: 200
+Response Preview: {
+  "courseTitle": "Basic React Hooks",
+   "courseDescription": "Introduction to React Hooks fundamentals",
+   "modules": [
+       {
+           "moduleId": 1,
+           "moduleTitle": "Introduction t...
+SUCCESS: Groq is working for course generation.
+
+Testing Quiz Generation (llama-3.1-8b-instant)...
+Quiz Response Preview: {
+  "questions": [
+      {
+         "id": 1,
+         "question": "What is the primary purpose of the useEffect hook in React?",
+         "options": [
+            "To handle state changes",
+            "To update the DOM",
+            "To run side-effects after rendering",
+            "To handle event listeners"
+         ],
+         "correct": 2
+      }
+   ]
+}
+SUCCESS: Groq is working for quiz generation.
