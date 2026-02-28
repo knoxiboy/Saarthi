@@ -62,62 +62,146 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="flex-1 pt-40 relative overflow-hidden">
-        <section className="px-6 pb-32 relative z-10">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="inline-flex items-center gap-3 px-6 py-2 bg-blue-500/10 text-blue-400 rounded-full text-xs font-bold uppercase tracking-widest mb-12 border border-blue-500/20 backdrop-blur-md animate-fade-in">
+      {/* Hero & Features Sections */}
+      <main className="flex-1 pt-32 relative overflow-hidden">
+        <section className="px-6 pb-24 relative z-10 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 min-h-[80vh]">
+          {/* Left Side: Copy & CTAs */}
+          <div className="flex-1 text-left animate-fade-in-up">
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-md">
               <Sparkles className="w-4 h-4" />
-              Career Navigation Platform
+              AI Career Navigation Platform
             </div>
 
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tight mb-10">
+            <h2 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-8 leading-[1.1]">
               Architect Your <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 animate-gradient bg-[length:200%_auto]">
                 Career Trajectory.
               </span>
             </h2>
 
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
-              Saarthi empowers your professional growth with AI-driven insights. Leverage advanced tools for resume optimization, profile analysis, and personalized career roadmaps.
+            <p className="text-lg text-slate-400 max-w-xl mb-10 leading-relaxed font-medium">
+              Get a measurable Job Readiness Score, optimize your resume, and apply smarter with AI-driven insights.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-32">
+            <div className="flex flex-col sm:flex-row items-start justify-start gap-4 mt-4">
               <SignedIn>
                 <Link href="/dashboard">
-                  <button className="group px-10 py-4 bg-blue-600 text-white rounded-2xl text-lg font-bold uppercase tracking-wider hover:bg-blue-700 transition-all flex items-center justify-center gap-3">
+                  <button className="relative group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-bold tracking-wide transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(139,92,246,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3 w-full sm:w-auto">
                     Go to Dashboard
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </Link>
               </SignedIn>
               <SignedOut>
                 <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
-                  <button className="group px-10 py-4 bg-white text-slate-950 rounded-2xl text-lg font-black uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-3 whitespace-nowrap">
-                    Get Started Free
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                  <button className="relative group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-bold tracking-wide transition-all shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(139,92,246,0.6)] hover:-translate-y-1 flex items-center justify-center gap-3 w-full sm:w-auto">
+                    Get Started
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </SignUpButton>
               </SignedOut>
             </div>
+          </div>
 
-            {/* Feature Bento Grid */}
-            <div id="features" className="flex flex-wrap justify-center gap-8 pb-32">
-              {[
-                { icon: MessageCircle, title: "Career Advisor", desc: "Receive on-demand, personalized career guidance.", gradient: "from-blue-600 to-cyan-600" },
-                { icon: FileText, title: "Resume Architect", desc: "Gain a competitive edge with professional resumes.", gradient: "from-purple-600 to-indigo-600" },
-                { icon: Map, title: "Smart Roadmaps", desc: "Discover learning pathways tailored to target roles.", gradient: "from-emerald-600 to-teal-600" },
-                { icon: FileEdit, title: "ATS Optimization", desc: "Receive actionable feedback to maximize ATS scores.", gradient: "from-orange-600 to-rose-600" },
-                { icon: FileEdit, title: "Cover Letters", desc: "Generate compelling letters that capture attention.", gradient: "from-cyan-600 to-blue-600" },
-              ].map((feature: any, i) => (
-                <div key={i} className="group relative p-8 glass-card rounded-3xl transition-all duration-500 hover:-translate-y-2 w-full sm:w-[calc(50%-2rem)] lg:w-[calc(33.33%-2rem)] min-w-[280px] sm:min-w-[300px] max-w-full sm:max-w-[400px]">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.gradient} p-0.5 mb-8 group-hover:scale-110 transition-transform shadow-xl`}>
-                    <div className="w-full h-full bg-slate-950 rounded-[calc(1rem+4px)] flex items-center justify-center">
-                      <feature.icon className="w-8 h-8 text-white" />
+          {/* Right Side: Floating Dashboard Preview */}
+          <div className="flex-1 w-full lg:w-auto relative perspective:1000px mt-12 lg:mt-0">
+            <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full animate-pulse-glow"></div>
+
+            <div className="relative w-full max-w-lg mx-auto transform-gpu lg:rotate-y-[-10deg] rotate-x-[5deg] animate-float transition-all duration-700 ease-out hover:rotate-0 hover:scale-[1.02]">
+              <div className="glass-card rounded-[2rem] p-6 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-slate-900/60 backdrop-blur-2xl relative overflow-hidden">
+                {/* Mock UI Header */}
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white text-sm font-bold">Saarthi Analytics</h4>
+                      <p className="text-slate-500 text-xs">Real-time metrics</p>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-black text-white mb-4 tracking-tight">{feature.title}</h3>
-                  <p className="text-slate-400 leading-relaxed font-bold text-base">{feature.desc}</p>
+                  <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                    Live
+                  </div>
+                </div>
+
+                {/* Score Cards */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-slate-950/50 rounded-2xl p-4 border border-white/5 shadow-inner">
+                    <p className="text-slate-400 text-xs mb-2">Job Readiness Score</p>
+                    <div className="flex items-end gap-2">
+                      <span className="text-3xl font-black text-white">72%</span>
+                      <span className="text-emerald-400 text-[10px] mb-1 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded">↑ 12%</span>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="w-full h-1.5 bg-slate-800 rounded-full mt-3 overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 w-[72%] rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950/50 rounded-2xl p-4 border border-white/5 shadow-inner">
+                    <p className="text-slate-400 text-xs mb-2">Resume Match</p>
+                    <div className="flex items-end gap-2">
+                      <span className="text-3xl font-black text-white">85%</span>
+                      <span className="text-emerald-400 text-[10px] mb-1 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded">↑ 5%</span>
+                    </div>
+                    <div className="flex -space-x-2 mt-3">
+                      <div className="w-6 h-6 rounded-full bg-blue-500 border border-slate-900 flex items-center justify-center text-[8px] font-bold text-white shadow-md">TS</div>
+                      <div className="w-6 h-6 rounded-full bg-purple-500 border border-slate-900 flex items-center justify-center text-[8px] font-bold text-white shadow-md">Re</div>
+                      <div className="w-6 h-6 rounded-full bg-emerald-500 border border-slate-900 flex items-center justify-center text-[8px] font-bold text-white shadow-md">Nd</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feedback Snippet */}
+                <div className="bg-gradient-to-r from-blue-500/10 to-transparent rounded-2xl p-4 border border-blue-500/10 hover:border-blue-500/30 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle className="w-4 h-4 text-blue-400" />
+                    <span className="text-blue-400 text-xs font-bold uppercase tracking-wider">Interview Feedback</span>
+                  </div>
+                  <p className="text-slate-300 text-sm leading-relaxed">
+                    "Your explanation of system design was clear. To improve, focus on discussing trade-offs between monolithic vs microservices."
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="py-32 relative z-10 border-t border-white/5 bg-[#020617]/50">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-20 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+              <h2 className="text-4xl md:text-5xl font-black text-white mb-6">
+                Everything You Need to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Get Hired</span>
+              </h2>
+              <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium">
+                AI modules designed to optimize every stage of your career journey.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { icon: MessageCircle, title: "Career Advisor", desc: "AI chatbot delivering on-demand, personalized career guidance.", accent: "from-blue-500 to-cyan-400" },
+                { icon: FileText, title: "Resume Architect", desc: "Gain a competitive edge with professionally AI-optimized resumes.", accent: "from-purple-500 to-indigo-500" },
+                { icon: FileEdit, title: "ATS Optimization", desc: "Receive actionable feedback to maximize applicant tracking system scores.", accent: "from-orange-500 to-rose-500" },
+                { icon: Map, title: "Smart Roadmaps", desc: "Discover interactive learning pathways tailored to your target roles.", accent: "from-emerald-500 to-teal-400" },
+                { icon: Sparkles, title: "AI Mock Interview", desc: "Practice with realistic AI interviews and get instant actionable feedback.", accent: "from-cyan-500 to-blue-600" },
+                { icon: FileText, title: "Readiness Score", desc: "Track your overall job-readiness with our proprietary AI scoring metric.", accent: "from-fuchsia-500 to-pink-500" },
+              ].map((feature, i) => (
+                <div
+                  key={i}
+                  className="group relative p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 backdrop-blur-md transition-all duration-300 hover:bg-white/[0.04] hover:shadow-[0_0_30px_rgba(59,130,246,0.1)] hover:border-white/10 hover:-translate-y-2 flex flex-col h-full animate-fade-in-up"
+                  style={{ animationDelay: `${(i % 3) * 100 + 100}ms`, animationFillMode: "both" }}
+                >
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.accent} p-[1px] mb-8 group-hover:scale-110 transition-transform duration-500 shadow-lg`}>
+                    <div className="w-full h-full bg-[#020617] rounded-[15px] flex items-center justify-center relative overflow-hidden group-hover:bg-[#020617]/80 transition-colors">
+                      <feature.icon className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3 tracking-wide">{feature.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed flex-grow font-medium">{feature.desc}</p>
                 </div>
               ))}
             </div>
@@ -125,12 +209,13 @@ export default function Home() {
         </section>
 
         {/* Dynamic Background Elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-hidden -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-blue-600/20 blur-[180px] rounded-full animate-pulse opacity-50"></div>
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-purple-600/15 blur-[180px] rounded-full opacity-40"></div>
-
-          {/* Enhanced Grid Pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+        <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden -z-20 bg-[#020617]">
+          {/* Main glow top */}
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-600/10 blur-[150px] rounded-full"></div>
+          {/* Main glow bottom right */}
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-purple-600/10 blur-[150px] rounded-full"></div>
+          {/* Subtle Grid overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_0%,#000_100%,transparent_100%)]"></div>
         </div>
       </main>
 

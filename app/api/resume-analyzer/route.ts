@@ -44,43 +44,58 @@ export async function POST(req: NextRequest) {
         else if (hasIntent) mode = "career_intent";
 
         const systemPrompt = `
-You are a professional ATS (Applicant Tracking System) Expert and Senior Tech Recruiter.
-Your task is to provide a detailed resume analysis report.
+You are an elite AI Career Coach and former FAANG Senior Technical Recruiter.
+Your goal is to deeply evaluate a candidate's resume and generate a "Job Readiness Intelligence Report."
 
-Evaluation Mode: ${mode === "strict_jd" ? "Strict Job Description Matching" : mode === "career_intent" ? "Career Intent Alignment" : "General Profile Perception"}
+Evaluation Mode: ${mode === "strict_jd" ? "Strict Job Description Matching" : mode === "career_intent" ? "Career Intent Target Benchmarking" : "General Readiness Evaluation"}
 
-Criteria for Evaluation:
-${mode === "strict_jd"
-                ? `- Keyword Match: Are primary skills from the JD present?
-- Experience Depth: Matches required years/level?
-- Relevance: How well does this resume fit this specific role?`
-                : mode === "career_intent"
-                    ? `- Industry Fit: Is the resume optimized for the "${fieldOfInterest}" field?
-- Target Alignment: Does it reflect the quality expected by "${targetRole}"?
-- Skill Gaps: What skills are missing to be competitive in this specific career path?`
-                    : `- Presentation: Is it formatted professionally?
-- Impact: Uses strong action verbs and quantifiable results?
-- Skill Clarity: Are technical skills clearly categorized?`}
+You must execute a multi-dimensional analysis based on the following Master Formula:
+1. Skills Match Score (30%) - Evaluate core, supporting, and advanced technical skills gap.
+2. Project Strength Score (20%) - Evaluate project complexity (e.g., full-stack, deployed, structured, real users).
+3. Experience Depth Score (15%) - Evaluate internships, leadership, open-source, or equivalent practical depth.
+4. ATS Optimization Score (15%) - Evaluate keyword density, action verbs, active formatting.
+5. Impact & Metrics Score (10%) - Evaluate quantifiable achievements (e.g., "$X saved", "Y% improved").
+6. Industry Benchmark Fit (10%) - Evaluate against standard industry expectations for the target role.
 
 Output Format:
-You MUST respond with a valid JSON object only. No conversational text.
+You MUST respond with a valid, perfectly formatted JSON object ONLY. No conversational text. Do not wrap in markdown \`\`\`json blocks.
 {
-  "score": (number 0-100),
-  "summary": "A concise overview of the analysis.",
-  "strengths": ["Strength 1", "Strength 2"],
-  "weaknesses": ["Improvement area 1", "Improvement area 2"],
-  "improvementPoints": [
-    "Actionable advice 1",
-    "Actionable advice 2"
+  "score": (number 0-100 representing the weighted Job Readiness Score),
+  "summary": "A highly detailed, multi-sentence executive summary covering specific strengths and the exact critical gaps limiting the score.",
+  "scoreBreakdown": {
+    "skills": (number 0-100),
+    "projects": (number 0-100),
+    "experience": (number 0-100),
+    "ats": (number 0-100),
+    "impact": (number 0-100),
+    "industryFit": (number 0-100)
+  },
+  "strengths": [
+    "Detailed Strength 1 with context and 'why it matters'.",
+    "Detailed Strength 2 discussing impact and level of mastery."
   ],
-  "missingKeywords": [${mode === "strict_jd" ? "List of keywords from JD missing" : mode === "career_intent" ? "Industry-standard skills missing for this intent" : ""}]
+  "criticalGaps": [
+    "Specific Critical Gap 1 indicating exactly what is missing and why it holds the candidate back.",
+    "Specific Critical Gap 2 indicating exact skills or structural problems."
+  ],
+  "improvementPoints": [
+    "Highly actionable, step-by-step strategy to resolve Gap 1.",
+    "Highly actionable, step-by-step strategy to resolve Gap 2."
+  ],
+  "missingKeywords": [${mode === "strict_jd" ? "List of critical keywords from JD missing" : mode === "career_intent" ? "Industry-standard skills missing for this intent" : "List of typical keywords missing for general SWE role"}],
+  "sectionwiseAnalysis": {
+    "education": "Deep analytical feedback on education section. E.g., 'Solid foundation but missing major coursework context. Add relevant subjects...'",
+    "experience": "Deep analytical feedback on experience section. Evaluate bullets, metrics, and leadership. Suggest exact rewrites.",
+    "projects": "Deep analytical feedback on projects. Are they too academic? Do they list technologies or actual impact? Suggest features to add.",
+    "skills": "Deep analytical feedback on skills section. E.g., 'Strong React experience, but missing state management or testing frameworks...'"
+  }
 }
 `;
 
         const userPrompt = `
 ${mode === "strict_jd" ? `TARGET JOB DESCRIPTION:\n${jobDescription}` : ""}
 ${mode === "career_intent" ? `CAREER INTENT:\nField: ${fieldOfInterest}\nTarget: ${targetRole}` : ""}
-${mode === "general" ? "MODE: General Portfolio Review" : ""}
+${mode === "general" ? "MODE: General Job Readiness Benchmarking" : ""}
 
 RESUME TEXT:
 ${resumeText}
@@ -116,7 +131,7 @@ ${resumeText}
                 ? jobDescription
                 : (fieldOfInterest || targetRole)
                     ? `${fieldOfInterest}${fieldOfInterest && targetRole ? ' - ' : ''}${targetRole}`.trim()
-                    : "General Analysis";
+                    : "Job Readiness Baseline";
 
             await db.insert(resumeAnalysisTable).values({
                 userEmail,
