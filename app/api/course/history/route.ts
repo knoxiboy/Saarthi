@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/configs/db";
-import { coursesTable } from "@/configs/schema";
+import { coursesTable, courseModulesTable, courseLessonsTable, courseProgressTable } from "@/configs/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
     try {
@@ -42,22 +42,71 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: "Document ID is required" }, { status: 400 });
         }
 
-        // Technically we might want to delete modules/lessons/progress first due to FK constraints, 
-        // but for now let's hope cascade/drizzle handles it or we'll manually cascade it if it fails:
-        // Actually, schema doesn't seem to define cascade... Let's just do a basic delete or cascading manually here just in case.
-        // It's safer to delete them or let Drizzle throw.
-        // For Saarthi, we can simply delete the parent record and rely on PG constraints if configured.
-        await db.delete(coursesTable)
-            .where(
-                and(
-                    eq(coursesTable.id, parseInt(id)),
-                    eq(coursesTable.userEmail, email)
-                )
-            );
+        const courseId = parseInt(id);
+
+        // Perform manual cascade delete
+        try {
+            console.log("Starting manual cascade delete for course:", courseId);
+
+            // 1. Get modules for this course
+            const modules = await db.select({ id: courseModulesTable.id })
+                .from(courseModulesTable)
+                .where(eq(courseModulesTable.courseId, courseId));
+
+            const moduleIds = modules.map(m => m.id);
+            console.log("Found modules:", moduleIds);
+
+            if (moduleIds.length > 0) {
+                // 2. Get lessons for these modules
+                const lessons = await db.select({ id: courseLessonsTable.id })
+                    .from(courseLessonsTable)
+                    .where(inArray(courseLessonsTable.moduleId, moduleIds));
+
+                const lessonIds = lessons.map(l => l.id);
+                console.log("Found lessons:", lessonIds);
+
+                if (lessonIds.length > 0) {
+                    // 3. Delete progress records
+                    await db.delete(courseProgressTable)
+                        .where(inArray(courseProgressTable.lessonId, lessonIds));
+                    console.log("Deleted progress records");
+
+                    // 4. Delete lessons
+                    await db.delete(courseLessonsTable)
+                        .where(inArray(courseLessonsTable.moduleId, moduleIds));
+                    console.log("Deleted lessons");
+                }
+
+                // 5. Delete modules
+                await db.delete(courseModulesTable)
+                    .where(eq(courseModulesTable.courseId, courseId));
+                console.log("Deleted modules");
+            }
+
+            // 6. Delete the course itself
+            const result = await db.delete(coursesTable)
+                .where(
+                    and(
+                        eq(coursesTable.id, courseId),
+                        eq(coursesTable.userEmail, email)
+                    )
+                );
+            console.log("Deleted course result:", result);
+
+        } catch (cascadeError: any) {
+            console.error("Manual Cascade Delete Failed:", cascadeError);
+            return NextResponse.json({
+                error: "Failed to perform cascading delete",
+                details: cascadeError.message
+            }, { status: 500 });
+        }
 
         return NextResponse.json({ message: "Course deleted successfully" });
     } catch (error: any) {
-        console.error("Course Delete Error:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        console.error("Course Delete API Error:", error);
+        return NextResponse.json({
+            error: "Failed to delete course",
+            details: error.message
+        }, { status: 500 });
     }
 }

@@ -260,9 +260,9 @@ function WritingStudioContent() {
             <div className="min-h-screen bg-[#020617] text-white py-4 md:py-6 lg:py-8 px-8 md:px-16 lg:px-24 selection:bg-blue-500/30">
                 <div className="max-w-7xl mx-auto space-y-8">
                     <div className="space-y-4">
-                        <Link href="/dashboard" className="inline-flex items-center gap-2.5 text-slate-500 hover:text-white transition-all group font-bold text-[10px] uppercase tracking-[0.2em] bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                        <Link href="/ai-tools" className="inline-flex items-center gap-2.5 text-slate-500 hover:text-white transition-all group font-bold text-[10px] uppercase tracking-[0.2em] bg-white/5 px-4 py-2 rounded-full border border-white/5">
                             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-                            <span>Return to Console</span>
+                            <span>Back to Features</span>
                         </Link>
 
                         <div className="space-y-4">
@@ -318,8 +318,9 @@ function WritingStudioContent() {
                 <div className="max-w-7xl mx-auto w-full px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-5">
                         <Link
-                            href="/dashboard"
+                            href="/ai-tools"
                             className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all font-black text-xs group"
+                            title="Back to Features"
                         >
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                         </Link>

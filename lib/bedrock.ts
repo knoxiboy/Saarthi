@@ -231,7 +231,7 @@ export async function rankYouTubeVideos(videos: any[], level: string) {
     ${videos.map((v, i) => `${i + 1}. Title: ${v.title} | Channel: ${v.channelTitle} | ID: ${v.videoId}`).join("\n")}`;
 
     try {
-        const videoId = await callGroq("llama-3.1-8b-instant", systemPrompt, userPrompt, false);
+        const videoId = await callGroqPremium("llama-3.1-8b-instant", systemPrompt, userPrompt, false);
         return videoId.trim().replace(/['"]/g, "");
     } catch (error) {
         return videos[0]?.videoId; // Fallback to first

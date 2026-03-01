@@ -143,9 +143,9 @@ function CourseContent() {
 
                 {/* Back to Dashboard Button */}
                 <div className="absolute top-8 left-8 sm:top-12 sm:left-12 z-50">
-                    <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors group">
-                        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-xs font-black uppercase tracking-widest">Back to Dashboard</span>
+                    <Link href="/ai-tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-sm font-medium">Back to Features</span>
                     </Link>
                 </div>
 
