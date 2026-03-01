@@ -16,6 +16,16 @@ import {
     X,
     LogOut
 } from 'lucide-react'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
@@ -32,6 +42,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname()
     const { signOut } = useClerk()
+    const [showSignOutDialog, setShowSignOutDialog] = useState(false)
 
     const handleSignOut = async () => {
         await signOut({ redirectUrl: '/' })
@@ -113,7 +124,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     {/* Footer & Logout */}
                     <div className="p-6 border-t border-white/5 space-y-4">
                         <button
-                            onClick={handleSignOut}
+                            onClick={() => setShowSignOutDialog(true)}
                             className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all group"
                         >
                             <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -125,6 +136,27 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     </div>
                 </div>
             </aside>
+
+            {/* Confirm Sign Out Dialog */}
+            <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+                <AlertDialogContent className="bg-slate-900 border-white/10 text-white">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to sign out?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-slate-400">
+                            You will need to log in again to access your dashboard and AI tools.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleSignOut}
+                            className="bg-red-600 hover:bg-red-700 text-white border-none"
+                        >
+                            Sign Out
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     )
 }
