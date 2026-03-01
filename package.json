@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next dev",
-    "build": "NEXT_TELEMETRY_DISABLED=1 cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
+    "build": "cross-env NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "next lint"
   },
