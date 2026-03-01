@@ -15,7 +15,8 @@ import {
     Calendar,
     ChevronRight,
     MapPin,
-    Briefcase
+    Briefcase,
+    BookOpen
 } from "lucide-react"
 import axios from "axios"
 import Link from "next/link"
@@ -42,8 +43,11 @@ function HistoryContent() {
     const [roadmaps, setRoadmaps] = useState<RoadmapItem[]>([])
     const [chats, setChats] = useState<ChatItem[]>([])
     const [coverLetters, setCoverLetters] = useState<CoverLetterItem[]>([])
+    const [writingStudioDocs, setWritingStudioDocs] = useState<any[]>([])
+    const [writingStudioTab, setWritingStudioTab] = useState("cover_letter")
     const [resumes, setResumes] = useState<ResumeAnalysisItem[]>([])
     const [savedResumes, setSavedResumes] = useState<any[]>([])
+    const [courses, setCourses] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
 
@@ -71,19 +75,30 @@ function HistoryContent() {
         }
     }, [])
 
-    const fetchCoverLetters = useCallback(async () => {
+    const fetchWritingStudioDocs = useCallback(async () => {
         try {
-            const response = await axios.get("/api/writing-studio/history?docType=cover_letter")
-            const formatted = response.data.map((item: any) => ({
-                id: item.id,
-                jobDescription: item.context,
-                coverLetter: item.generatedContent,
-                createdAt: item.createdAt,
-                userDetails: item.userDetails
-            }))
-            setCoverLetters(formatted)
+            // We'll fetch all document types to allow filtering on frontend
+            const types = ["cover_letter", "sop", "motivation_letter", "proposal"]
+            const promises = types.map(t => axios.get(`/api/writing-studio/history?docType=${t}`))
+            const results = await Promise.all(promises)
+
+            const allDocs = results.flatMap((res, i) =>
+                res.data.map((item: any) => ({
+                    id: item.id,
+                    docType: types[i],
+                    jobDescription: item.context,
+                    coverLetter: item.generatedContent, // keeping same variable name for compatibility or mapping it
+                    createdAt: item.createdAt,
+                    userDetails: item.userDetails
+                }))
+            )
+
+            // Sort by newest first
+            allDocs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+            setWritingStudioDocs(allDocs)
         } catch (err) {
-            console.error("Failed to fetch writing studio history (cover letters):", err)
+            console.error("Failed to fetch writing studio history:", err)
         }
     }, [])
 
@@ -105,17 +120,27 @@ function HistoryContent() {
         }
     }, [])
 
+    const fetchCourses = useCallback(async () => {
+        try {
+            const response = await axios.get("/api/course/history")
+            setCourses(response.data)
+        } catch (err) {
+            console.error("Failed to fetch courses:", err)
+        }
+    }, [])
+
     const fetchAllHistory = useCallback(async () => {
         setLoading(true)
         await Promise.all([
             fetchRoadmaps(),
             fetchChats(),
-            fetchCoverLetters(),
+            fetchWritingStudioDocs(),
             fetchResumes(),
-            fetchSavedResumes()
+            fetchSavedResumes(),
+            fetchCourses()
         ])
         setLoading(false)
-    }, [fetchRoadmaps, fetchChats, fetchCoverLetters, fetchResumes, fetchSavedResumes])
+    }, [fetchRoadmaps, fetchChats, fetchWritingStudioDocs, fetchResumes, fetchSavedResumes, fetchCourses])
 
     useEffect(() => {
         fetchAllHistory()
@@ -141,11 +166,11 @@ function HistoryContent() {
         }
     }
 
-    const handleDeleteCoverLetter = async (id: number) => {
+    const handleDeleteWritingDoc = async (id: number) => {
         try {
             await axios.delete(`/api/writing-studio/history?id=${id}`)
             toast.success("Document deleted successfully")
-            setCoverLetters(coverLetters.filter(item => item.id !== id))
+            setWritingStudioDocs(writingStudioDocs.filter(item => item.id !== id))
         } catch (err) {
             toast.error("Failed to delete document")
         }
@@ -171,6 +196,16 @@ function HistoryContent() {
         }
     }
 
+    const handleDeleteCourse = async (id: number) => {
+        try {
+            await axios.delete(`/api/course/history?id=${id}`)
+            toast.success("Course deleted successfully")
+            setCourses(courses.filter((item: any) => item.id !== id))
+        } catch (err) {
+            toast.error("Failed to delete course")
+        }
+    }
+
     const filteredRoadmaps = roadmaps.filter(item =>
         item.targetField.toLowerCase().includes(searchQuery.toLowerCase())
     )
@@ -179,14 +214,12 @@ function HistoryContent() {
         (item.chatTitle || "Untitled Chat").toLowerCase().includes(searchQuery.toLowerCase())
     )
 
-    const filteredCoverLetters = filteredCoverLettersBySearch(coverLetters, searchQuery)
-
-    function filteredCoverLettersBySearch(items: CoverLetterItem[], query: string) {
-        return items.filter(item =>
-            item.jobDescription.toLowerCase().includes(query.toLowerCase()) ||
-            item.coverLetter.toLowerCase().includes(query.toLowerCase())
-        )
-    }
+    const filteredWritingDocs = writingStudioDocs.filter(item => {
+        const matchesSearch = item.jobDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.coverLetter.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesTab = item.docType === writingStudioTab;
+        return matchesSearch && matchesTab;
+    })
 
     const filteredResumes = resumes.filter(item =>
         (item.jobDescription || "General Analysis").toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,6 +229,10 @@ function HistoryContent() {
     const filteredSavedResumes = savedResumes.filter(item =>
         (item.resumeName || "Untitled Resume").toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.resumeData?.personalInfo?.fullName || "").toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
+    const filteredCourses = courses.filter((item: any) =>
+        (item.title || "Untitled Course").toLowerCase().includes(searchQuery.toLowerCase())
     )
 
     return (
@@ -238,10 +275,11 @@ function HistoryContent() {
                     <TabsList className="bg-white/5 p-2 rounded-[2rem] h-auto flex flex-nowrap gap-2 overflow-x-auto no-scrollbar justify-start md:justify-center border border-white/10 backdrop-blur-xl shadow-xl">
                         {[
                             { id: "roadmaps", icon: Map, label: "Roadmaps", count: roadmaps.length },
+                            { id: "courses", icon: BookOpen, label: "Courses", count: courses.length },
                             { id: "chats", icon: MessageSquare, label: "Expert Chat", count: chats.length },
-                            { id: "cover-letters", icon: FileText, label: "Cover Letters", count: coverLetters.length },
+                            { id: "cover-letters", icon: FileText, label: "Writing Studio", count: writingStudioDocs.length },
                             { id: "resumes", icon: Search, label: "Analysis", count: resumes.length },
-                            { id: "saved-resumes", icon: Briefcase, label: "Drafts", count: savedResumes.length },
+                            { id: "saved-resumes", icon: Briefcase, label: "Resumes Created", count: savedResumes.length },
                         ].map(tab => (
                             <TabsTrigger
                                 key={tab.id}
@@ -299,6 +337,32 @@ function HistoryContent() {
                                 )}
                             </TabsContent>
 
+                            <TabsContent value="courses" className="focus-visible:outline-none ring-0">
+                                {filteredCourses.length === 0 ? (
+                                    <EmptyState
+                                        icon={<BookOpen className="w-10 h-10" />}
+                                        title="No Courses"
+                                        description={searchQuery ? "No matching courses found." : "Your generated courses will be stored here."}
+                                        action={!searchQuery ? { label: "Create Course", href: "/ai-tools/course" } : undefined}
+                                    />
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        {filteredCourses.map((item: any) => (
+                                            <HistoryCard
+                                                key={item.id}
+                                                icon={<BookOpen className="w-6 h-6" />}
+                                                title={item.title}
+                                                date={new Date(item.createdAt).toLocaleDateString()}
+                                                href={`/ai-tools/course?id=${item.id}`}
+                                                onDelete={() => handleDeleteCourse(item.id)}
+                                                deleteTitle="Delete Course?"
+                                                deleteDescription="This action will permanently delete this generated course."
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </TabsContent>
+
                             <TabsContent value="chats" className="focus-visible:outline-none ring-0">
                                 {filteredChats.length === 0 ? (
                                     <EmptyState
@@ -326,25 +390,47 @@ function HistoryContent() {
                             </TabsContent>
 
                             <TabsContent value="cover-letters" className="focus-visible:outline-none ring-0">
-                                {filteredCoverLetters.length === 0 ? (
+
+                                {/* Sub Navigation for Writing Studio */}
+                                <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/5 p-2 rounded-2xl border border-white/5 w-fit">
+                                    {[
+                                        { id: "cover_letter", label: "Cover Letters" },
+                                        { id: "sop", label: "SOPs" },
+                                        { id: "motivation_letter", label: "Motivation Letters" },
+                                        { id: "proposal", label: "Proposals" }
+                                    ].map(sub => (
+                                        <button
+                                            key={sub.id}
+                                            onClick={() => setWritingStudioTab(sub.id)}
+                                            className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${writingStudioTab === sub.id
+                                                ? "bg-blue-600 text-white shadow-lg"
+                                                : "text-slate-400 hover:text-white hover:bg-white/5"
+                                                }`}
+                                        >
+                                            {sub.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {filteredWritingDocs.length === 0 ? (
                                     <EmptyState
                                         icon={<FileText className="w-10 h-10" />}
-                                        title="No Cover Letters"
-                                        description={searchQuery ? "No matching cover letters found." : "Generated cover letters will be stored here."}
+                                        title="No Documents"
+                                        description={searchQuery ? "No matching documents found." : "Generated documents will be stored here."}
                                         action={!searchQuery ? { label: "Create Document", href: "/ai-tools/writing-studio" } : undefined}
                                     />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                        {filteredCoverLetters.map((item) => (
+                                        {filteredWritingDocs.map((item) => (
                                             <HistoryCard
                                                 key={item.id}
                                                 icon={<FileText className="w-6 h-6" />}
                                                 title={item.jobDescription}
                                                 date={new Date(item.createdAt).toLocaleDateString()}
-                                                href="/ai-tools/writing-studio"
-                                                onDelete={() => handleDeleteCoverLetter(item.id)}
-                                                deleteTitle="Delete Cover Letter?"
-                                                deleteDescription="This action will permanently delete this cover letter."
+                                                href={`/ai-tools/writing-studio?id=${item.id}&docType=${item.docType}`}
+                                                onDelete={() => handleDeleteWritingDoc(item.id)}
+                                                deleteTitle="Delete Document?"
+                                                deleteDescription="This action will permanently delete this document."
                                             />
                                         ))}
                                     </div>

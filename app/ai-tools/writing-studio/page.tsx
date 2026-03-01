@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import {
     FileText,
     Send,
@@ -28,6 +28,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { Document, Packer, Paragraph, TextRun } from "docx"
 import { saveAs } from "file-saver"
+import { useSearchParams } from "next/navigation"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -85,9 +86,15 @@ const docTypes = [
 const tones = ["Professional", "Formal", "Confident", "Technical", "Creative", "Friendly"]
 const lengths = ["Short", "Medium", "Detailed"]
 
-export default function WritingStudioPage() {
-    const [selectedDoc, setSelectedDoc] = useState<DocType | null>(null)
-    const [view, setView] = useState<"hub" | "studio">("hub")
+function WritingStudioContent() {
+    const searchParams = useSearchParams()
+
+    // We get docType from search params if deep-linked
+    const linkedDocParam = searchParams.get("docType") as DocType | null
+    const linkedIdParam = searchParams.get("id")
+
+    const [selectedDoc, setSelectedDoc] = useState<DocType | null>(linkedDocParam)
+    const [view, setView] = useState<"hub" | "studio">(linkedDocParam && linkedIdParam ? "studio" : "hub")
     const [tab, setTab] = useState<"generate" | "history">("generate")
 
     // Generation State
@@ -102,6 +109,29 @@ export default function WritingStudioPage() {
     // History State
     const [history, setHistory] = useState<DocumentItem[]>([])
     const [fetchingHistory, setFetchingHistory] = useState(false)
+    const [initializedFromLink, setInitializedFromLink] = useState(false)
+
+    useEffect(() => {
+        if (linkedIdParam && linkedDocParam && !initializedFromLink) {
+            setLoading(true)
+            axios.get(`/api/writing-studio/history?id=${linkedIdParam}`)
+                .then(res => {
+                    if (res.data) {
+                        setContext(res.data.context)
+                        setUserDetails(res.data.userDetails)
+                        setOutput(res.data.generatedContent)
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to fetch linked document details:", err)
+                    toast.error("Failed to load historical document.")
+                })
+                .finally(() => {
+                    setLoading(false)
+                    setInitializedFromLink(true)
+                })
+        }
+    }, [linkedIdParam, linkedDocParam, initializedFromLink])
 
     const fetchHistory = useCallback(async () => {
         if (!selectedDoc) return
@@ -287,12 +317,12 @@ export default function WritingStudioPage() {
             <div className="border-b border-white/5 bg-white/[0.01] backdrop-blur-3xl sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto w-full px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-5">
-                        <button
-                            onClick={() => setView("hub")}
+                        <Link
+                            href="/dashboard"
                             className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all font-black text-xs group"
                         >
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                        </button>
+                        </Link>
                         <div className="space-y-0.5">
                             <h2 className="text-lg font-black uppercase tracking-tighter leading-none">{getSelectedTypeTitle()}</h2>
                             <div className="flex items-center gap-2">
@@ -408,9 +438,17 @@ export default function WritingStudioPage() {
                                         >
                                             Open in Studio
                                         </button>
-                                        <div className="w-9 h-9 rounded-xl bg-white/5 shadow-inner flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                                        <button
+                                            onClick={() => {
+                                                setOutput(item.generatedContent)
+                                                setContext(item.context)
+                                                setUserDetails(item.userDetails)
+                                                setTab("generate")
+                                            }}
+                                            className="w-9 h-9 rounded-xl bg-white/5 shadow-inner flex items-center justify-center hover:bg-white hover:text-black transition-all"
+                                        >
                                             <ArrowLeft className="w-4.5 h-4.5 rotate-180" />
-                                        </div>
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -598,5 +636,17 @@ export default function WritingStudioPage() {
                 </div>
             )}
         </div>
+    )
+}
+
+export default function WritingStudioPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-screen bg-[#020617]">
+                <div className="w-12 h-12 border-4 border-t-blue-500 border-white/5 rounded-full animate-spin mb-6" />
+            </div>
+        }>
+            <WritingStudioContent />
+        </Suspense>
     )
 }

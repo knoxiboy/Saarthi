@@ -122,13 +122,15 @@ function CourseContent() {
         }
     }
 
-    const toggleLessonStatus = async (lessonId: number) => {
+    const toggleLessonStatus = async (lessonId: number, currentStatus: boolean) => {
         try {
-            await updateLessonProgress(lessonId, true)
+            await updateLessonProgress(lessonId, !currentStatus)
             // Re-fetch course to update checkmarks
             const data = await getCourseDetails(Number(courseId))
             setCourse(data)
-            toast.success("Progress updated!")
+            if (!currentStatus) {
+                toast.success("Lesson marked as complete!")
+            }
         } catch (err) { }
     }
 
@@ -137,20 +139,33 @@ function CourseContent() {
     // --- Landing / Generator View ---
     if (!course) {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 py-20">
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 py-20 relative">
+
+                {/* Back to Dashboard Button */}
+                <div className="absolute top-8 left-8 sm:top-12 sm:left-12 z-50">
+                    <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors group">
+                        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-xs font-black uppercase tracking-widest">Back to Dashboard</span>
+                    </Link>
+                </div>
+
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="max-w-4xl w-full space-y-12"
                 >
                     <div className="text-center space-y-6">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(59,130,246,0.2)] mb-2">
                             <Zap className="w-3 h-3 fill-current" /> Premium AI Engine
                         </div>
-                        <h1 className="text-6xl font-black text-white uppercase tracking-tighter leading-none">
+                        <h1 className="text-6xl font-black text-white uppercase tracking-tighter leading-none mb-4">
                             Saarthi <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">Course Forge</span>
                         </h1>
-                        <p className="text-slate-400 text-xl font-medium max-w-2xl mx-auto">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full text-xs font-bold text-amber-200 uppercase tracking-wider mb-6">
+                            <Sparkles className="w-4 h-4 text-amber-400" />
+                            Beta Version: We're rapidly evolving this engine to be even more advanced.
+                        </div>
+                        <p className="text-slate-400 text-xl font-medium max-w-2xl mx-auto mt-4">
                             Generate industry-standard, high-depth courses with real-world projects, interview prep, and curated videos.
                         </p>
                     </div>
@@ -251,13 +266,17 @@ function CourseContent() {
     const interviewQs = JSON.parse(currentLesson?.interviewQuestions || "[]")
     const outcomes = JSON.parse(course?.outcomes || "[]")
 
+    const totalLessons = course.modules.reduce((acc: number, m: any) => acc + m.lessons.length, 0);
+    const completedLessons = course.modules.reduce((acc: number, m: any) => acc + m.lessons.filter((l: any) => l.isCompleted).length, 0);
+    const completionPercentage = totalLessons === 0 ? 0 : (completedLessons / totalLessons) * 100;
+
     return (
         <div className="min-h-screen bg-slate-950 text-white selection:bg-blue-500/30">
             <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden min-h-screen">
 
                 {/* 1. Sidebar Navigation */}
                 <div className="lg:col-span-3 border-r border-white/5 bg-slate-900/50 backdrop-blur-xl h-screen sticky top-0 overflow-y-auto custom-scrollbar p-6">
-                    <button onClick={() => router.push("/ai-tools/course")} className="flex items-center gap-3 text-slate-500 hover:text-white mb-10 transition-colors group">
+                    <button onClick={() => router.push("/dashboard")} className="flex items-center gap-3 text-slate-500 hover:text-white mb-10 transition-colors group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         <span className="text-[10px] font-black uppercase tracking-[0.15em]">Dashboard</span>
                     </button>
@@ -266,10 +285,15 @@ function CourseContent() {
                         <div className="space-y-2">
                             <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Course Progress</h2>
                             <p className="text-xl font-black text-white leading-tight mb-2">{course.title}</p>
+
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs text-slate-400 font-bold">{Math.round(completionPercentage)}% Completed</span>
+                                <span className="text-[10px] bg-white/10 text-slate-300 px-2 py-0.5 rounded-full">{completedLessons}/{totalLessons}</span>
+                            </div>
                             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-1000"
-                                    style={{ width: `${(course.modules.filter((m: any) => m.lessons.every((l: any) => l.isCompleted)).length / course.modules.length) * 100}%` }}
+                                    style={{ width: `${completionPercentage}%` }}
                                 />
                             </div>
                         </div>
@@ -457,13 +481,16 @@ function CourseContent() {
                                         </section>
                                     )}
 
-                                    {/* Action Footer */}
                                     <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-20 border-t border-white/5">
                                         <button
-                                            onClick={() => toggleLessonStatus(currentLesson.id)}
-                                            className="px-10 py-5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3"
+                                            onClick={() => toggleLessonStatus(currentLesson.id, currentLesson.isCompleted)}
+                                            className={`px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3 ${currentLesson.isCompleted
+                                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
+                                                }`}
                                         >
-                                            <CheckCircle2 className="w-5 h-5" /> Mark Lesson as Complete
+                                            <CheckCircle2 className={`w-5 h-5 ${currentLesson.isCompleted ? 'text-emerald-400' : ''}`} />
+                                            {currentLesson.isCompleted ? 'Completed' : 'Mark Lesson as Complete'}
                                         </button>
 
                                         <div className="flex items-center gap-3">
