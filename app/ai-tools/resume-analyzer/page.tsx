@@ -266,9 +266,9 @@ export default function ResumeAnalyzerPage() {
         <div className="min-h-screen bg-slate-950">
             {/* Header */}
             <div className="max-w-7xl mx-auto px-6 py-8">
-                <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
+                <Link href="/ai-tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-sm font-medium">Back to Dashboard</span>
+                    <span className="text-sm font-medium">Back to Features</span>
                 </Link>
 
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

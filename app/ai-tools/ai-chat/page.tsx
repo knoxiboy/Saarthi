@@ -355,9 +355,9 @@ export default function AIChatPage() {
 
                     {/* shifting history and new sessions button to the right and back to dashboard to the left */}
                     <div className="flex items-center justify-between w-full">
-                        <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-0 group">
+                        <Link href="/ai-tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-0 group">
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                            <span className="text-sm font-medium">Back to Dashboard</span>
+                            <span className="text-sm font-medium">Back to Features</span>
                         </Link>
 
                         <div className="flex items-center gap-3">
