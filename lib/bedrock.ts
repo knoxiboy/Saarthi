@@ -1,157 +1,239 @@
-import axios from "axios";
+import { chatWithGroq } from "./groq";
+import { z } from "zod";
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+// Zod Schemas for Validation
+const CourseOutlineSchema = z.object({
+    courseTitle: z.string(),
+    description: z.string(),
+    learningOutcomes: z.array(z.string()),
+    capstoneProject: z.string(),
+    modules: z.array(z.object({
+        title: z.string(),
+        description: z.string(),
+        lessons: z.array(z.object({
+            title: z.string(),
+            focus: z.string()
+        }))
+    }))
+});
 
-export async function generateCourseOutline(topic: string, context?: string) {
-    const prompt = `
-You are an expert curriculum designer. 
-Generate a comprehensive, professional course outline for the topic: "${topic}".
-${context ? `Additional Context: ${context}` : ""}
+const LessonContentSchema = z.object({
+    explanation: z.string(),
+    realWorldExample: z.string(),
+    codeExample: z.string().optional(),
+    commonMistakes: z.array(z.string()),
+    exercise: z.string(),
+    interviewQuestions: z.array(z.object({
+        question: z.string(),
+        answer: z.string()
+    }))
+});
 
-Output Requirement:
-You MUST respond with a valid JSON object ONLY. Use exactly these keys:
-{
-  "title": "Course Title",
-  "description": "Comprehensive description of the course.",
-  "modules": [
-    {
-      "title": "Module Title",
-      "order": 1,
-      "lessons": [
-        {
-          "title": "Lesson Title",
-          "content": "Detailed educational content for this lesson. Use markdown.",
-          "takeaways": ["Takeaway 1", "Takeaway 2"],
-          "order": 1
-        }
-      ]
-    }
-  ]
-}
-`;
+const QuizSchema = z.object({
+    questions: z.array(z.object({
+        question: z.string(),
+        options: z.array(z.string()),
+        correctAnswer: z.string()
+    }))
+});
 
+/**
+ * Executes a call to Groq with Premium Engine specific handling
+ */
+async function callGroqPremium(model: string, systemPrompt: string, userPrompt: string, jsonMode: boolean = true) {
     try {
-        console.log(`AI: Generating course for topic: ${topic}`);
-        const response = await axios.post(
-            GROQ_API_URL,
-            {
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { role: "system", content: "You are an expert curriculum designer. Always output valid JSON strictly following the requested structure." },
-                    { role: "user", content: prompt }
-                ],
-                response_format: { type: "json_object" }
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-
-        const aiOutput = response.data.choices[0].message.content;
-        const result = JSON.parse(aiOutput);
-
-        // Robust normalization
-        let rawModules = result.modules || result.courseOutline || result.outline || result.course_outline || [];
-        if (!Array.isArray(rawModules)) {
-            // Find any property that is an array
-            const foundArray = Object.values(result).find(val => Array.isArray(val));
-            rawModules = Array.isArray(foundArray) ? foundArray : [];
-        }
-
-        const normalized = {
-            title: result.title || result.courseTitle || result.course_title || topic || "Untitled Course",
-            description: result.description || result.courseDescription || result.course_description || "",
-            modules: rawModules
-        };
-
-        // Normalize modules and lessons
-        normalized.modules = normalized.modules.map((m: any, idx: number) => {
-            let rawLessons = m.lessons || m.topics || m.units || m.content || [];
-            if (!Array.isArray(rawLessons)) rawLessons = [];
-
-            return {
-                title: m.title || m.moduleTitle || m.module_title || `Module ${idx + 1}`,
-                order: m.order || idx + 1,
-                lessons: rawLessons.map((l: any, lIdx: number) => ({
-                    title: l.title || l.lessonTitle || l.lesson_title || l.topic || `Lesson ${lIdx + 1}`,
-                    content: l.content || l.explanation || l.details || "",
-                    takeaways: l.takeaways || l.keyTakeaways || l.key_takeaways || [],
-                    order: l.order || lIdx + 1
-                }))
-            };
+        const responseData = await chatWithGroq([
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+        ], {
+            model: model,
+            response_format: jsonMode ? { type: "json_object" } : undefined,
+            temperature: 0.7
         });
 
-        console.log(`AI: Successfully generated ${normalized.modules.length} modules for "${normalized.title}"`);
-        return normalized;
+        if (!responseData?.choices?.[0]?.message?.content) {
+            throw new Error("Empty response from Groq Engine");
+        }
+
+        return responseData.choices[0].message.content;
     } catch (error: any) {
-        console.error("Groq Course Generation Error:", error.response?.data || error.message);
-        throw new Error("Failed to generate course outline via AI");
+        console.error(`[PREMIUM_GROQ_ERROR] API Call Failed:`, error.message);
+        throw error;
     }
 }
 
-export async function generateQuiz(lessonText: string) {
-    const prompt = `
-Given the following lesson content, generate 5 multiple-choice questions. 
-Each question must have 4 options and one clearly marked correct answer.
+/**
+ * STEP 1: Generate the high-level course skeleton
+ */
+export async function generateCourseOutline(topic: string, level: string, duration: string, goalType: string) {
+    console.log(">>> [DEBUG] generateCourseOutline START <<<", { topic, level, duration, goalType });
+    const systemPrompt = `You are a Senior Industry Educator and FAANG-Level Technical Instructor.
+    You design advanced, structured, progressive courses that prepare learners for real-world job roles and technical interviews.
+    Return ONLY a strict JSON object. No markdown, no filler.`;
 
-Lesson Content:
-${lessonText}
+    const userPrompt = `Generate a comprehensive ${duration} course on "${topic}" for ${level} learners.
+    Constraints:
+    - Max 6 modules.
+    - Each module must contain 4-5 lessons.
+    - Each lesson must build logically from previous ones.
+    - Include a final capstone project.
+    - Course must focus on ${goalType}.
+    - Emphasize practical depth.
 
-Output Requirement:
-Respond with a valid JSON array of objects ONLY. No wrapper object.
-[
-  {
-    "question": "Question text",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
-    "correctAnswer": "Option A"
-  }
-]
-`;
+    Required JSON Format:
+    {
+      "courseTitle": "...",
+      "description": "...",
+      "learningOutcomes": ["...", "..."],
+      "capstoneProject": "...",
+      "modules": [
+        {
+          "title": "...",
+          "description": "...",
+          "lessons": [{"title": "...", "focus": "..."}]
+        }
+      ]
+    }`;
 
     try {
-        const response = await axios.post(
-            GROQ_API_URL,
-            {
-                model: "llama-3.1-8b-instant",
-                messages: [
-                    { role: "system", content: "You are an expert educator. Always output a valid JSON array of objects. Do not wrap the array in another object." },
-                    { role: "user", content: prompt }
-                ],
-                response_format: { type: "json_object" }
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        const raw = await callGroqPremium("llama-3.3-70b-versatile", systemPrompt, userPrompt);
+        console.log("[BEDROCK] Raw Outline Response:", raw);
 
-        const aiOutput = response.data.choices[0].message.content;
-        const result = JSON.parse(aiOutput);
-
-        let quizArray: any[] = [];
-        if (Array.isArray(result)) quizArray = result;
-        else if (result.quiz && Array.isArray(result.quiz)) quizArray = result.quiz;
-        else if (result.questions && Array.isArray(result.questions)) quizArray = result.questions;
-        else if (result.items && Array.isArray(result.items)) quizArray = result.items;
-        else {
-            const possibleArray = Object.values(result).find(val => Array.isArray(val));
-            if (possibleArray) quizArray = possibleArray as any[];
+        let parsed;
+        try {
+            parsed = JSON.parse(raw);
+        } catch (e) {
+            console.error("[BEDROCK] JSON Parse Failed:", raw);
+            throw new Error("AI returned invalid JSON structure");
         }
 
-        // Normalize quiz items
-        return quizArray.map((q: any) => ({
-            question: q.question || q.title || "",
-            options: q.options || q.choices || [],
-            correctAnswer: q.correctAnswer || q.answer || q.correct || ""
-        }));
+        const validated = CourseOutlineSchema.safeParse(parsed);
+        if (!validated.success) {
+            console.error("[BEDROCK] Schema Validation Failed:", validated.error.format());
+            throw new Error("AI response did not match the expected course structure");
+        }
 
+        return validated.data;
     } catch (error: any) {
-        console.error("Groq Quiz Generation Error:", error.response?.data || error.message);
-        return [];
+        console.error("Course Outline Generation Failed:", error);
+        throw new Error(error.message || "Failed to generate course structure");
+    }
+}
+
+/**
+ * STEP 2: Generate deep-dive content for a specific lesson
+ */
+export async function generateLessonContent(lessonTitle: string, focus: string, level: string, goalType: string) {
+    const wordLimits: Record<string, string> = {
+        "Beginner": "400-600",
+        "Intermediate": "600-800",
+        "Advanced": "800-1200"
+    };
+    const limit = wordLimits[level] || "600-800";
+
+    const systemPrompt = `You are a Senior Industry Educator.
+    Generate a highly detailed, industry-aligned lesson.
+    Follow these rules:
+    1. Depth: Aim for ${limit} words in the explanation.
+    2. Format: Return strict JSON only.
+    3. Interview focus: Include real-world gaps and recruiter-style questions.`;
+
+    const userPrompt = `Generate lesson content for:
+    Topic: "${lessonTitle}"
+    Focus Area: ${focus}
+    Level: ${level}
+    Goal: ${goalType}
+
+    Include:
+    - explanation (Min ${limit.split('-')[0]} words)
+    - realWorldExample (Concrete industry scenario)
+    - codeExample (Clean, professional code if applicable)
+    - commonMistakes (List of things professionals get wrong)
+    - exercise (Actionable task)
+    - interviewQuestions (5-8 high-quality Q&A)
+
+    JSON Format:
+    {
+      "explanation": "...",
+      "realWorldExample": "...",
+      "codeExample": "...",
+      "commonMistakes": ["...", "..."],
+      "exercise": "...",
+      "interviewQuestions": [{"question": "...", "answer": "..."}]
+    }`;
+
+    let attempt = 0;
+    while (attempt < 2) {
+        try {
+            const raw = await callGroqPremium("llama-3.3-70b-versatile", systemPrompt, userPrompt);
+            const parsed = LessonContentSchema.parse(JSON.parse(raw));
+
+            // Basic word count enforcement
+            const wordCount = parsed.explanation.split(/\s+/).length;
+            const min = parseInt(limit.split('-')[0]);
+
+            if (wordCount < min && attempt === 0) {
+                console.warn(`Lesson too short (${wordCount}/${min}). Retrying...`);
+                attempt++;
+                continue;
+            }
+
+            return parsed;
+        } catch (error) {
+            console.error(`Lesson Generation Attempt ${attempt + 1} Failed:`, error);
+            attempt++;
+            if (attempt === 2) throw error;
+        }
+    }
+    throw new Error("Failed to generate lesson content after retries.");
+}
+
+/**
+ * STEP 3: Generate high-quality MCQs
+ */
+export async function generateQuiz(content: string) {
+    const systemPrompt = `You are an Expert Examiner. Generate 8 high-quality MCQs.
+    Mix conceptual and scenario-based questions. Return strict JSON.`;
+
+    const userPrompt = `Based on this content, generate 8 MCQs:
+    ${content.substring(0, 3000)}
+
+    JSON Format:
+    {
+      "questions": [
+        {
+          "question": "...",
+          "options": ["A", "B", "C", "D"],
+          "correctAnswer": "..."
+        }
+      ]
+    }`;
+
+    try {
+        const raw = await callGroqPremium("llama-3.1-8b-instant", systemPrompt, userPrompt);
+        return QuizSchema.parse(JSON.parse(raw));
+    } catch (error) {
+        console.error("Quiz Generation Failed:", error);
+        return { questions: [] }; // Graceful failure
+    }
+}
+
+/**
+ * Rank YouTube videos using AI
+ */
+export async function rankYouTubeVideos(videos: any[], level: string) {
+    if (!videos || videos.length === 0) return null;
+
+    const systemPrompt = `Select the most structured, high-quality educational tutorial best suited for ${level} learners. 
+    Return ONLY the videoId as a string. No other text.`;
+
+    const userPrompt = `Rank these videos for a ${level} learner and return the best one:
+    ${videos.map((v, i) => `${i + 1}. Title: ${v.title} | Channel: ${v.channelTitle} | ID: ${v.videoId}`).join("\n")}`;
+
+    try {
+        const videoId = await callGroq("llama-3.1-8b-instant", systemPrompt, userPrompt, false);
+        return videoId.trim().replace(/['"]/g, "");
+    } catch (error) {
+        return videos[0]?.videoId; // Fallback to first
     }
 }

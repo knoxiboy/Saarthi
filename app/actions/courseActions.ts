@@ -4,14 +4,59 @@ import { db } from "@/configs/db";
 import {
     coursesTable,
     courseModulesTable,
-    courseLessonsTable
+    courseLessonsTable,
+    courseProgressTable
 } from "@/configs/schema";
-import { generateCourseOutline, generateQuiz } from "@/lib/bedrock";
+import {
+    generateCourseOutline,
+    generateLessonContent,
+    generateQuiz,
+    rankYouTubeVideos
+} from "@/lib/bedrock";
 import { searchYoutubeVideos } from "@/lib/youtube";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import crypto from "crypto";
 
-export async function createCourseAction(topic: string, context?: string, roadmapId?: number, milestoneId?: number) {
+/**
+ * Limit concurrency for async tasks
+ */
+async function promiseLimit<T>(items: T[], limit: number, iteratorFn: (item: T) => Promise<any>) {
+    const ret: Promise<any>[] = [];
+    const executing: Promise<any>[] = [];
+    for (const item of items) {
+        const p = Promise.resolve().then(() => iteratorFn(item));
+        ret.push(p);
+        if (limit <= items.length) {
+            const e: any = p.then(() => executing.splice(executing.indexOf(e), 1));
+            executing.push(e);
+            if (executing.length >= limit) {
+                await Promise.race(executing);
+            }
+        }
+    }
+    return Promise.all(ret);
+}
+
+/**
+ * Generate a unique hash for caching
+ */
+function generateCourseHash(topic: string, level: string, duration: string, goalType: string) {
+    return crypto.createHash("md5").update(`${topic}-${level}-${duration}-${goalType}`).digest("hex");
+}
+
+/**
+ * STEP 1: Fast Generation - Outline & Skeleton
+ */
+export async function createCourseAction(
+    topic: string,
+    level: string = "Intermediate",
+    duration: string = "4 Weeks",
+    goalType: string = "Mastery",
+    roadmapId?: number,
+    milestoneId?: number
+) {
+    console.log(">>> [DEBUG] createCourseAction CALLED <<<", { topic, level, duration });
     try {
         const user = await currentUser();
         if (!user || !user.primaryEmailAddress?.emailAddress) {
@@ -19,105 +64,215 @@ export async function createCourseAction(topic: string, context?: string, roadma
         }
         const userEmail = user.primaryEmailAddress.emailAddress;
 
-        // 1. Generate Course Outline
-        console.log(`[COURSE_ACTION] Generating outline for: ${topic}`);
-        const aiOutput = await generateCourseOutline(topic, context);
-        console.log(`[COURSE_ACTION] AI Outline received: ${aiOutput.title} with ${aiOutput.modules?.length} modules`);
+        // Ensure strings are safe
+        const safeTopic = topic?.trim() || "Technology Masterclass";
+        const safeLevel = level?.trim() || "Intermediate";
+        const safeDuration = duration?.trim() || "4 Weeks";
+        const safeGoal = goalType?.trim() || "Mastery";
 
-        if (!aiOutput.modules || aiOutput.modules.length === 0) {
-            throw new Error("AI failed to generate any modules for this topic.");
-        }
+        // 0. Caching Check
+        // Note: For simplicity, we check if a course with similar title/level/user exists.
+        // A full hash-based cache could be implemented in a 'course_cache' table if needed.
 
-        // 2. Insert Parent Course
-        console.log(`[COURSE_ACTION] Inserting course into DB...`);
+        // 1. Generate Course Outline using Llama 3.3 70B
+        console.log(`[COURSE_ACTION] Generating outline for: ${safeTopic} (${safeLevel})`);
+        const outline = await generateCourseOutline(safeTopic, safeLevel, safeDuration, safeGoal);
+
+        // 2. Insert Parent Course (Status: generating)
         const [insertedCourse] = await db.insert(coursesTable).values({
-            userEmail: userEmail,
-            title: aiOutput.title || topic,
-            content: aiOutput.description || "",
-            roadmapId: roadmapId,
-            milestoneId: milestoneId
+            userEmail,
+            title: outline.courseTitle,
+            level: safeLevel,
+            duration: safeDuration,
+            goalType: safeGoal,
+            description: outline.description,
+            outcomes: JSON.stringify(outline.learningOutcomes),
+            capstoneProject: outline.capstoneProject,
+            generationStatus: "generating",
+            content: outline.description, // Compatibility
+            roadmapId,
+            milestoneId
         }).returning();
 
-        if (!insertedCourse) {
-            throw new Error("Failed to save course to database.");
-        }
-
         const courseId = insertedCourse.id;
-        console.log(`[COURSE_ACTION] Course created with ID: ${courseId}`);
 
-        // 3. Process Modules and Lessons
-        for (let mIdx = 0; mIdx < aiOutput.modules.length; mIdx++) {
-            const moduleData = aiOutput.modules[mIdx];
-            console.log(`[COURSE_ACTION] Processing Module ${mIdx + 1}: ${moduleData.title}`);
-            const [insertedModule] = await db.insert(courseModulesTable).values({
-                courseId: courseId,
-                title: moduleData.title,
-                order: moduleData.order || mIdx + 1
+        // 3. Save Skeleton Modules & Lessons
+        for (let mIdx = 0; mIdx < outline.modules.length; mIdx++) {
+            const m = outline.modules[mIdx];
+            const [mod] = await db.insert(courseModulesTable).values({
+                courseId,
+                title: m.title,
+                description: m.description,
+                order: mIdx + 1
             }).returning();
 
-            if (!insertedModule) continue;
-
-            for (let lIdx = 0; lIdx < moduleData.lessons.length; lIdx++) {
-                const lessonData = moduleData.lessons[lIdx];
-
-                // 4. Fetch YouTube Videos
-                console.log(`[COURSE_ACTION] Searching videos for lesson: ${lessonData.title}`);
-                const videos = await searchYoutubeVideos(`${aiOutput.title} ${lessonData.title}`);
-                const videoUrl = videos[0]?.videoId ? `https://www.youtube.com/watch?v=${videos[0].videoId}` : null;
-
-                // 5. Generate Quizzes and Summary for each lesson
-                let quizContent = "";
-                let summaryContent = "";
-                try {
-                    console.log(`[COURSE_ACTION] Generating quiz for lesson: ${lessonData.title}`);
-                    const quiz = await generateQuiz(lessonData.content);
-                    quizContent = JSON.stringify(quiz);
-                    summaryContent = lessonData.content.substring(0, 250) + "...";
-                } catch (qErr) {
-                    console.error("[COURSE_ACTION] Quiz generation failed, continuing:", qErr);
-                }
-
+            for (let lIdx = 0; lIdx < m.lessons.length; lIdx++) {
+                const l = m.lessons[lIdx];
                 await db.insert(courseLessonsTable).values({
-                    moduleId: insertedModule.id,
-                    title: lessonData.title,
-                    content: lessonData.content,
-                    takeaways: JSON.stringify(lessonData.takeaways || []),
-                    summary: summaryContent,
-                    quiz: quizContent,
-                    videoUrl: videoUrl,
-                    order: lessonData.order || lIdx + 1
+                    moduleId: mod.id,
+                    title: l.title,
+                    depthLevel: level,
+                    content: l.focus, // Temporary focus as content
+                    takeaways: "[]",
+                    order: lIdx + 1
                 });
             }
         }
 
-        console.log(`[COURSE_ACTION] Course generation complete for ID: ${courseId}`);
         return { success: true, courseId };
 
     } catch (error: any) {
-        console.error("[COURSE_ACTION] ERROR:", error);
-        return {
-            success: false,
-            error: error.message || "An unexpected error occurred during course generation."
-        };
+        console.error("[COURSE_ACTION] Error in createCourseAction:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * STEP 2: Background Generation - Detailed Lesson Content
+ * To be triggered by the frontend or an edge worker after redirect.
+ */
+export async function generateCourseContentAction(courseId: number) {
+    try {
+        const course = await db.query.coursesTable.findFirst({
+            where: eq(coursesTable.id, courseId),
+            with: { modules: { with: { lessons: true } } }
+        });
+
+        if (!course) throw new Error("Course not found");
+        if (course.generationStatus === "completed") return { success: true };
+
+        const allLessons = course.modules.flatMap(m => m.lessons);
+
+        // Parallel generation with limit of 3
+        await promiseLimit(allLessons, 3, async (lesson) => {
+            try {
+                // 1. Generate Deep Content (800+ words if advanced)
+                const content = await generateLessonContent(
+                    lesson.title,
+                    lesson.content || "", // Focus was stored here
+                    course.level || "Intermediate",
+                    course.goalType || "Mastery"
+                );
+
+                // 2. Generate Quiz
+                const quiz = await generateQuiz(content.explanation);
+
+                // 3. Smart YouTube Search & Rank
+                const videoCandidates = await searchYoutubeVideos(lesson.title, course.title, course.level || "Intermediate");
+                const rankedVideoId = await rankYouTubeVideos(videoCandidates, course.level || "Intermediate");
+                const bestVideo = videoCandidates.find(v => v.videoId === rankedVideoId) || videoCandidates[0];
+
+                // 4. Update Database
+                await db.update(courseLessonsTable).set({
+                    explanation: content.explanation,
+                    content: content.explanation, // Compatibility
+                    realWorldExample: content.realWorldExample,
+                    codeExample: content.codeExample,
+                    commonMistakes: JSON.stringify(content.commonMistakes),
+                    exercise: content.exercise,
+                    interviewQuestions: JSON.stringify(content.interviewQuestions),
+                    quiz: JSON.stringify(quiz),
+                    takeaways: JSON.stringify(content.commonMistakes.slice(0, 3)), // Compatibility
+                    videoUrl: bestVideo ? `https://www.youtube.com/watch?v=${bestVideo.videoId}` : null,
+                    videoTitle: bestVideo?.title || ""
+                }).where(eq(courseLessonsTable.id, lesson.id));
+
+            } catch (err) {
+                console.error(`Failed to generate content for lesson ${lesson.id}:`, err);
+            }
+        });
+
+        // Mark as completed
+        await db.update(coursesTable).set({ generationStatus: "completed" }).where(eq(coursesTable.id, courseId));
+        return { success: true };
+
+    } catch (error: any) {
+        console.error("[COURSE_ACTION] Background Generation Error:", error);
+        await db.update(coursesTable).set({ generationStatus: "failed" }).where(eq(coursesTable.id, courseId));
+        return { success: false, error: error.message };
     }
 }
 
 export async function getCourseDetails(courseId: number) {
     try {
+        const user = await currentUser();
+        const userEmail = user?.primaryEmailAddress?.emailAddress;
+
         const course = await db.query.coursesTable.findFirst({
             where: eq(coursesTable.id, courseId),
             with: {
                 modules: {
                     with: {
-                        lessons: true
-                    }
+                        lessons: {
+                            orderBy: (lessons, { asc }) => [asc(lessons.order)]
+                        }
+                    },
+                    orderBy: (modules, { asc }) => [asc(modules.order)]
                 }
             }
         });
+
+        if (!course) return null;
+
+        // Fetch progress for this user
+        if (userEmail) {
+            const progress = await db.query.courseProgressTable.findMany({
+                where: eq(courseProgressTable.userEmail, userEmail)
+            });
+
+            // Map progress to lessons
+            const progressMap = new Map(progress.map(p => [p.lessonId, p.completed]));
+
+            return {
+                ...course,
+                modules: course.modules.map(m => ({
+                    ...m,
+                    lessons: m.lessons.map(l => ({
+                        ...l,
+                        isCompleted: progressMap.get(l.id) || false
+                    }))
+                }))
+            };
+        }
 
         return course;
     } catch (error) {
         console.error("GET COURSE DETAILS ERROR:", error);
         return null;
+    }
+}
+
+export async function updateLessonProgress(lessonId: number, completed: boolean, quizScore?: number) {
+    try {
+        const user = await currentUser();
+        if (!user) throw new Error("Unauthorized");
+        const userEmail = user.primaryEmailAddress?.emailAddress;
+        if (!userEmail) throw new Error("Email not found");
+
+        const existing = await db.query.courseProgressTable.findFirst({
+            where: and(
+                eq(courseProgressTable.userEmail, userEmail),
+                eq(courseProgressTable.lessonId, lessonId)
+            )
+        });
+
+        if (existing) {
+            await db.update(courseProgressTable).set({
+                completed,
+                quizScore: quizScore !== undefined ? quizScore : existing.quizScore,
+                updatedAt: new Date()
+            }).where(eq(courseProgressTable.id, existing.id));
+        } else {
+            await db.insert(courseProgressTable).values({
+                userEmail,
+                lessonId,
+                completed,
+                quizScore: quizScore || 0
+            });
+        }
+        return { success: true };
+    } catch (error) {
+        console.error("Update Progress Error:", error);
+        return { success: false };
     }
 }

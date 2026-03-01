@@ -128,8 +128,10 @@ export default function RoadmapPage() {
         try {
             const result = await createCourseAction(
                 topic,
-                milestone?.goal || "",
-                Number(roadmap?.id),
+                currentLevel || "Intermediate",
+                timeline || "4 Weeks",
+                "Mastery",
+                roadmap?.id ? Number(roadmap.id) : undefined,
                 index
             )
 
