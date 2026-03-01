@@ -107,13 +107,13 @@ export default function AIChatPage() {
             return;
         }
 
-        setAttachedFile(file);
-        if (file.type.startsWith("image/")) {
-            const url = URL.createObjectURL(file);
-            setFilePreview(url);
-        } else {
-            setFilePreview(null);
+        if (!file.type.includes("pdf") && !file.type.startsWith("text/")) {
+            toast.error("Only PDF and Text documents are supported.");
+            return;
         }
+
+        setAttachedFile(file);
+        setFilePreview(null);
     };
 
     const handleRemoveFile = () => {
@@ -537,13 +537,6 @@ export default function AIChatPage() {
                     {/* Attachment Preview Area */}
                     {attachedFile && (
                         <div className="flex items-center gap-3 px-4 py-3 bg-white/10 backdrop-blur-3xl border border-white/20 rounded-2xl w-fit animate-in fade-in slide-in-from-bottom-2">
-                            {filePreview ? (
-                                <img src={filePreview} alt="Preview" className="w-10 h-10 rounded-lg object-cover" />
-                            ) : (
-                                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                    <FileIcon className="w-5 h-5 text-indigo-400" />
-                                </div>
-                            )}
                             <div className="flex flex-col">
                                 <span className="text-sm font-bold text-white max-w-[200px] truncate">{attachedFile.name}</span>
                                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{(attachedFile.size / 1024 / 1024).toFixed(2)} MB</span>
@@ -563,7 +556,7 @@ export default function AIChatPage() {
                                         type="file"
                                         className="hidden"
                                         onChange={handleFileChange}
-                                        accept="image/*,.pdf,.txt"
+                                        accept=".pdf,.txt"
                                     />
                                     <Paperclip className="w-5 h-5 group-hover/attach:scale-110 transition-transform" />
                                 </label>
@@ -580,7 +573,10 @@ export default function AIChatPage() {
                         <button
                             onClick={() => handleSend()}
                             disabled={loading || (!input.trim() && !attachedFile)}
-                            className="w-16 h-16 flex items-center justify-center bg-white/50 text-black border border-white/20 rounded-[2rem] disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl shrink-0 hover:bg-white hover:scale-105 active:scale-95 transition-all group"
+                            className={`w-16 h-16 flex items-center justify-center border border-white/20 rounded-[2rem] disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl shrink-0 hover:scale-105 active:scale-95 transition-all duration-300 group ${(input.trim() || attachedFile)
+                                ? "bg-white text-black hover:bg-slate-100 shadow-[0_0_30px_rgba(255,255,255,0.4)]"
+                                : "bg-white/10 text-slate-400 hover:bg-white/20"
+                                }`}
                         >
                             {loading ? (
                                 <Loader2 className="w-6 h-6 animate-spin text-black" />

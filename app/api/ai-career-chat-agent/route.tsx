@@ -74,20 +74,9 @@ Tone: Professional, strategic, calm, intelligent.
 
         // Process File If Attached
         let appendedText = "";
-        let hasImage = false;
-        let imagePart: any = null;
 
         if (fileBase64 && fileType) {
-            if (fileType.startsWith("image/")) {
-                activeModel = "llama-3.2-11b-vision-preview";
-                hasImage = true;
-                imagePart = {
-                    type: "image_url",
-                    image_url: {
-                        url: `data:${fileType};base64,${fileBase64}`
-                    }
-                };
-            } else if (fileType === "application/pdf") {
+            if (fileType === "application/pdf") {
                 try {
                     const buffer = Buffer.from(fileBase64, "base64");
                     // Safety check for pdfParse
@@ -102,7 +91,7 @@ Tone: Professional, strategic, calm, intelligent.
                 const text = Buffer.from(fileBase64, "base64").toString("utf-8");
                 appendedText = `\n\n--- [Attached Text Document: ${fileName || "Document.txt"}] ---\n${text}\n---`;
             } else {
-                return NextResponse.json({ error: "Unsupported file format. Please upload an image, PDF, or TXT file." }, { status: 400 });
+                return NextResponse.json({ error: "Unsupported file format. Please upload a PDF or TXT file." }, { status: 400 });
             }
         }
 
@@ -136,20 +125,10 @@ Tone: Professional, strategic, calm, intelligent.
             finalMessages.push(...priorMessages);
         }
 
-        if (hasImage) {
-            finalMessages.push({
-                role: "user",
-                content: [
-                    { type: "text", text: userText },
-                    imagePart
-                ]
-            });
-        } else {
-            finalMessages.push({
-                role: "user",
-                content: userText
-            });
-        }
+        finalMessages.push({
+            role: "user",
+            content: userText
+        });
 
         // Using robust Groq handler with built-in retries and model failover
         const data = await chatWithGroq(finalMessages, {
