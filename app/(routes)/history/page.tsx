@@ -272,7 +272,7 @@ function HistoryContent() {
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
-                    <TabsList className="bg-white/5 p-2 rounded-[2rem] h-auto flex flex-nowrap gap-2 overflow-x-auto no-scrollbar justify-start md:justify-center border border-white/10 backdrop-blur-xl shadow-xl">
+                    <TabsList className="bg-white/5 px-8 py-2 rounded-[2rem] h-auto flex flex-nowrap gap-2 overflow-x-auto no-scrollbar justify-start border border-white/10 backdrop-blur-xl shadow-xl">
                         {[
                             { id: "roadmaps", icon: Map, label: "Roadmaps", count: roadmaps.length },
                             { id: "courses", icon: BookOpen, label: "Courses", count: courses.length },
