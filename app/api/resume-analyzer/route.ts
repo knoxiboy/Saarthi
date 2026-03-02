@@ -8,47 +8,47 @@ import { currentUser } from "@clerk/nextjs/server";
 
 // Forced Refresh: 2026-02-09T06:05:00Z
 export async function POST(req: NextRequest) {
+  try {
+    const formData = await req.formData();
+    const file = formData.get("resume") as File;
+    const jobDescription = formData.get("jobDescription") as string || "";
+    const fieldOfInterest = formData.get("fieldOfInterest") as string || "";
+    const targetRole = formData.get("targetRole") as string || "";
+
+    if (!file) {
+      return NextResponse.json({ error: "Resume file is required" }, { status: 400 });
+    }
+
+    // 1. Extract text from PDF using pdf-parse (Robust, function-based)
+    const buffer = Buffer.from(await file.arrayBuffer());
+    let resumeText = "";
+
     try {
-        const formData = await req.formData();
-        const file = formData.get("resume") as File;
-        const jobDescription = formData.get("jobDescription") as string || "";
-        const fieldOfInterest = formData.get("fieldOfInterest") as string || "";
-        const targetRole = formData.get("targetRole") as string || "";
+      // Safety check for pdfParse
+      const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
+      const data = await pdfParse(buffer);
+      resumeText = data.text;
+    } catch (parseError: any) {
+      console.error("PDF Parsing Error:", parseError);
+      return NextResponse.json({
+        error: "Failed to extract text from the PDF. Please ensure it's a valid PDF document.",
+        detail: parseError.message
+      }, { status: 422 });
+    }
 
-        if (!file) {
-            return NextResponse.json({ error: "Resume file is required" }, { status: 400 });
-        }
+    if (!resumeText || resumeText.trim().length === 0) {
+      return NextResponse.json({ error: "Failed to extract text from the PDF" }, { status: 400 });
+    }
 
-        // 1. Extract text from PDF using pdf-parse (Robust, function-based)
-        const buffer = Buffer.from(await file.arrayBuffer());
-        let resumeText = "";
+    // 3. AI Analysis using Groq
+    const hasJD = !!jobDescription.trim();
+    const hasIntent = !!(fieldOfInterest.trim() || targetRole.trim());
 
-        try {
-            // Safety check for pdfParse
-            const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
-            const data = await pdfParse(buffer);
-            resumeText = data.text;
-        } catch (parseError: any) {
-            console.error("PDF Parsing Error:", parseError);
-            return NextResponse.json({
-                error: "Failed to extract text from the PDF. Please ensure it's a valid PDF document.",
-                detail: parseError.message
-            }, { status: 422 });
-        }
+    let mode = "general";
+    if (hasJD) mode = "strict_jd";
+    else if (hasIntent) mode = "career_intent";
 
-        if (!resumeText || resumeText.trim().length === 0) {
-            return NextResponse.json({ error: "Failed to extract text from the PDF" }, { status: 400 });
-        }
-
-        // 3. AI Analysis using Groq
-        const hasJD = !!jobDescription.trim();
-        const hasIntent = !!(fieldOfInterest.trim() || targetRole.trim());
-
-        let mode = "general";
-        if (hasJD) mode = "strict_jd";
-        else if (hasIntent) mode = "career_intent";
-
-        const systemPrompt = `
+    const systemPrompt = `
 You are an elite AI Career Coach and former FAANG Senior Technical Recruiter.
 Your goal is to deeply evaluate a candidate's resume and generate a "Job Readiness Intelligence Report."
 
@@ -97,7 +97,7 @@ You MUST respond with a valid, perfectly formatted JSON object ONLY. No conversa
 }
 `;
 
-        const userPrompt = `
+    const userPrompt = `
 ${mode === "strict_jd" ? `TARGET JOB DESCRIPTION:\n${jobDescription}` : ""}
 ${mode === "career_intent" ? `CAREER INTENT:\nField: ${fieldOfInterest}\nTarget: ${targetRole}` : ""}
 ${mode === "general" ? "MODE: General Job Readiness Benchmarking" : ""}
@@ -106,52 +106,52 @@ RESUME TEXT:
 ${resumeText}
 `;
 
-        const responseData = await chatWithGroq([
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-        ], {
-            model: "llama-3.3-70b-versatile",
-            response_format: { type: "json_object" }
-        });
+    const responseData = await chatWithGroq([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ], {
+      model: "llama-3.3-70b-versatile",
+      response_format: { type: "json_object" }
+    });
 
-        const user = await currentUser();
-        const userEmail = user?.primaryEmailAddress?.emailAddress;
+    const user = await currentUser();
+    const userEmail = user?.primaryEmailAddress?.emailAddress;
 
-        if (!responseData?.choices?.[0]?.message?.content) {
-            throw new Error("Invalid response from AI provider");
-        }
-
-        const aiOutput = JSON.parse(responseData.choices[0].message.content);
-
-        // Save to Database if user is authenticated
-        if (userEmail) {
-            // Use field/role as title if job description is empty
-            const displayTitle = jobDescription.trim()
-                ? jobDescription
-                : (fieldOfInterest || targetRole)
-                    ? `${fieldOfInterest}${fieldOfInterest && targetRole ? ' - ' : ''}${targetRole}`.trim()
-                    : "Job Readiness Baseline";
-
-            await db.insert(resumeAnalysisTable).values({
-                userEmail,
-                resumeText,
-                resumeName: file.name,
-                jobDescription: displayTitle,
-                analysisData: JSON.stringify(aiOutput)
-            });
-        }
-
-        return NextResponse.json(aiOutput);
-
-    } catch (error: any) {
-        console.error("Resume Analysis Error Detail:", {
-            message: error.message,
-            stack: error.stack,
-            response: error.response?.data
-        });
-        return NextResponse.json({
-            error: error.message || "Failed to analyze resume",
-            detail: error.response?.data || error.stack
-        }, { status: 500 });
+    if (!responseData?.choices?.[0]?.message?.content) {
+      throw new Error("Invalid response from AI provider");
     }
+
+    const aiOutput = JSON.parse(responseData.choices[0].message.content);
+
+    // Save to Database if user is authenticated
+    if (userEmail) {
+      // Use field/role as title if job description is empty
+      const displayTitle = jobDescription.trim()
+        ? jobDescription
+        : (fieldOfInterest || targetRole)
+          ? `${fieldOfInterest}${fieldOfInterest && targetRole ? ' - ' : ''}${targetRole}`.trim()
+          : "Job Readiness Baseline";
+
+      await db.insert(resumeAnalysisTable).values({
+        userEmail,
+        resumeText,
+        resumeName: file.name,
+        jobDescription: displayTitle,
+        analysisData: JSON.stringify(aiOutput)
+      });
+    }
+
+    return NextResponse.json(aiOutput);
+
+  } catch (error: any) {
+    console.error("Resume Analysis Error Detail:", {
+      message: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    });
+    return NextResponse.json({
+      error: error.message || "Failed to analyze resume",
+      detail: error.response?.data || error.stack
+    }, { status: 500 });
+  }
 }
