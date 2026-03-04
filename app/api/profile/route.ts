@@ -142,6 +142,8 @@ export async function GET(req: NextRequest) {
             ...profile,
             insights,
             completionPercentage: dynamicCompletion,
+            resumeText: latestAnalysis?.resumeText || null,
+            resumeName: latestAnalysis?.resumeName || null,
             metrics: {
                 roadmapsGenerated: roadmapsCount[0]?.value || 0,
                 coursesGenerated: coursesCount[0]?.value || 0,

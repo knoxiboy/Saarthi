@@ -71,6 +71,7 @@ function ResumeBuilderContent() {
     const [saving, setSaving] = useState(false)
     const [loading, setLoading] = useState(!!resumeId)
     const [sidebarSize, setSidebarSize] = useState(20)
+    const [fetchingProfile, setFetchingProfile] = useState(false)
 
     useEffect(() => {
         if (resumeId) {
@@ -86,6 +87,88 @@ function ResumeBuilderContent() {
             toast.error("Failed to load resume")
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleAutoFetch = async () => {
+        setFetchingProfile(true)
+        try {
+            const response = await axios.get("/api/profile")
+            const profile = response.data
+
+            if (!profile) {
+                toast.error("No profile data found. Please analyze your resume first.")
+                return
+            }
+
+            // Map Professional Links
+            const getLink = (platform: string) =>
+                profile.links?.find((l: any) => l.platform.toLowerCase() === platform.toLowerCase())?.url || ""
+
+            // Group Skills by Category
+            const groupedSkills: any[] = []
+            profile.skills?.forEach((s: any) => {
+                const category = s.category || "General"
+                let group = groupedSkills.find(g => g.category === category)
+                if (!group) {
+                    group = { category, skills: [] }
+                    groupedSkills.push(group)
+                }
+                group.skills.push(s.skillName)
+            })
+
+            const mappedData: ResumeData = {
+                ...INITIAL_DATA,
+                personalInfo: {
+                    fullName: profile.name || "",
+                    email: profile.userEmail || "",
+                    phone: "",
+                    address: profile.location || "",
+                    linkedin: getLink("LinkedIn"),
+                    github: getLink("GitHub"),
+                    leetcode: getLink("LeetCode"),
+                    portfolio: getLink("Portfolio"),
+                    summary: profile.currentRole ? `Professional ${profile.currentRole}` : "",
+                },
+                education: profile.education?.map((edu: any) => ({
+                    institution: edu.institution,
+                    degree: edu.degree,
+                    location: "", // Not in schema directly
+                    startDate: edu.startDate,
+                    endDate: edu.endDate,
+                    cgpa: edu.cgpa,
+                    description: edu.description
+                })) || [],
+                experience: profile.experience?.map((exp: any) => ({
+                    company: exp.company,
+                    role: exp.role,
+                    location: exp.location || "",
+                    startDate: exp.startDate,
+                    endDate: exp.endDate,
+                    description: exp.description
+                })) || [],
+                skills: groupedSkills,
+                projects: profile.projects?.map((proj: any) => {
+                    let projectLinks = {}
+                    try { projectLinks = JSON.parse(proj.links || "{}") } catch (e) { }
+                    return {
+                        title: proj.title,
+                        description: proj.description,
+                        technologies: proj.techStack?.split(",").map((s: string) => s.trim()) || [],
+                        link: (projectLinks as any).github || (projectLinks as any).live || ""
+                    }
+                }) || [],
+                honors: profile.achievements?.map((a: any) => a.title) || [],
+                template: data.template || "corporate"
+            }
+
+            setData(mappedData)
+            toast.success("Profile data loaded successfully!")
+        } catch (error) {
+            console.error("Auto-fetch error:", error)
+            toast.error("Failed to fetch profile data")
+        } finally {
+            setFetchingProfile(false)
         }
     }
 
@@ -162,6 +245,14 @@ function ResumeBuilderContent() {
                             My History
                         </Link>
                         <button
+                            onClick={handleAutoFetch}
+                            disabled={fetchingProfile}
+                            className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl group disabled:opacity-50"
+                        >
+                            {fetchingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />}
+                            Auto-Fetch from Profile
+                        </button>
+                        <button
                             onClick={handleSave}
                             disabled={saving}
                             className="inline-flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-slate-300 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all shadow-xl backdrop-blur-xl group disabled:opacity-50"
@@ -169,6 +260,7 @@ function ResumeBuilderContent() {
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />}
                             {searchParams.get("id") ? "Update Resume" : "Save Progress"}
                         </button>
+
                         <button
                             onClick={() => downloadResume(data)}
                             className="inline-flex items-center gap-3 px-6 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl group"

@@ -516,24 +516,9 @@ export default function SkillsAndProjects({ skills = [], projects = [], onUpdate
                                             <Github className="w-4 h-4" /> Code
                                         </a>
                                     )}
-                                    {links.live && (
-                                        <a href={links.live} target="_blank" className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                                            <Globe className="w-4 h-4" /> Live
-                                        </a>
-                                    )}
-                                    {links.demo && (
-                                        <a href={links.demo} target="_blank" className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                                            <Sparkles className="w-4 h-4" /> Demo
-                                        </a>
-                                    )}
-                                    {links.docs && (
-                                        <a href={links.docs} target="_blank" className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                                            <ExternalLink className="w-4 h-4" /> Docs
-                                        </a>
-                                    )}
-                                    {(!links.github && !links.live && !links.demo && !links.docs) && (
+                                    {!links.github && (
                                         <div className="p-2 text-slate-600 text-[10px] font-black uppercase tracking-widest italic">
-                                            No public links
+                                            No source code link
                                         </div>
                                     )}
                                 </div>
