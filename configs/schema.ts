@@ -125,7 +125,155 @@ export const courseProgressTable = pgTable("course_progress", {
     updatedAt: timestamp().defaultNow().notNull(),
 });
 
+// Saarthi Profile Tables
+export const userProfilesTable = pgTable("user_profiles", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull().unique(),
+    name: varchar({ length: 255 }),
+    profilePhoto: text(),
+    currentRole: varchar({ length: 255 }),
+    university: varchar({ length: 255 }),
+    location: varchar({ length: 255 }),
+    internshipsCount: integer().default(0),
+    leetcodeCount: integer().default(0),
+    completionPercentage: integer().default(0),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp().defaultNow().notNull(),
+});
+
+export const professionalLinksTable = pgTable("professional_links", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    platform: varchar({ length: 50 }).notNull(), // GitHub, LinkedIn, etc.
+    url: text().notNull(),
+});
+
+export const userSkillsTable = pgTable("user_skills", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    category: varchar({ length: 50 }).notNull(), // Languages, Frontend, etc.
+    skillName: varchar({ length: 255 }).notNull(),
+});
+
+export const userProjectsTable = pgTable("user_projects", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    title: varchar({ length: 255 }).notNull(),
+    techStack: text().notNull(), // JSON or comma-separated
+    description: text().notNull(),
+    links: text(), // JSON string for multiple links
+});
+
+export const careerGoalsTable = pgTable("career_goals", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull().unique(),
+    targetRole: varchar({ length: 255 }),
+    preferredDomain: varchar({ length: 255 }),
+    targetCompanies: text(), // Comma-separated or JSON
+});
+
+export const profileInsightsTable = pgTable("profile_insights", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull().unique(),
+    jobReadinessScore: integer().default(0),
+    breakdown: text(), // JSON string for score breakdown
+    atsScore: integer().default(0),
+    keywordStrength: varchar({ length: 20 }), // Low, Medium, Strong
+    projectImpact: varchar({ length: 20 }), // Weak, Medium, Strong
+    suggestions: text(), // JSON string for AI suggestions
+    updatedAt: timestamp().defaultNow().notNull(),
+});
+
+export const userEducationTable = pgTable("user_education", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    institution: varchar({ length: 255 }).notNull(),
+    degree: varchar({ length: 255 }),
+    fieldOfStudy: varchar({ length: 255 }),
+    cgpa: varchar({ length: 20 }),
+    startDate: varchar({ length: 50 }),
+    endDate: varchar({ length: 50 }),
+    description: text(),
+});
+
+export const userExperienceTable = pgTable("user_experience", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    company: varchar({ length: 255 }).notNull(),
+    role: varchar({ length: 255 }).notNull(),
+    location: varchar({ length: 255 }),
+    startDate: varchar({ length: 50 }),
+    endDate: varchar({ length: 50 }),
+    description: text(),
+});
+
+export const userAchievementsTable = pgTable("user_achievements", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    title: varchar({ length: 255 }).notNull(),
+    description: text(),
+});
+
 // Relations
+export const userProfilesRelations = relations(userProfilesTable, ({ many, one }) => ({
+    links: many(professionalLinksTable),
+    skills: many(userSkillsTable),
+    projects: many(userProjectsTable),
+    education: many(userEducationTable),
+    experience: many(userExperienceTable),
+    achievements: many(userAchievementsTable),
+    goals: one(careerGoalsTable, {
+        fields: [userProfilesTable.userEmail],
+        references: [careerGoalsTable.userEmail],
+    }),
+    insights: one(profileInsightsTable, {
+        fields: [userProfilesTable.userEmail],
+        references: [profileInsightsTable.userEmail],
+    }),
+}));
+
+export const professionalLinksRelations = relations(professionalLinksTable, ({ one }) => ({
+    profile: one(userProfilesTable, {
+        fields: [professionalLinksTable.userEmail],
+        references: [userProfilesTable.userEmail],
+    }),
+}));
+
+export const userSkillsRelations = relations(userSkillsTable, ({ one }) => ({
+    profile: one(userProfilesTable, {
+        fields: [userSkillsTable.userEmail],
+        references: [userProfilesTable.userEmail],
+    }),
+}));
+
+export const userProjectsRelations = relations(userProjectsTable, ({ one }) => ({
+    profile: one(userProfilesTable, {
+        fields: [userProjectsTable.userEmail],
+        references: [userProfilesTable.userEmail],
+    }),
+}));
+
+export const userEducationRelations = relations(userEducationTable, ({ one }) => ({
+    profile: one(userProfilesTable, {
+        fields: [userEducationTable.userEmail],
+        references: [userProfilesTable.userEmail],
+    }),
+}));
+
+export const userExperienceRelations = relations(userExperienceTable, ({ one }) => ({
+    profile: one(userProfilesTable, {
+        fields: [userExperienceTable.userEmail],
+        references: [userProfilesTable.userEmail],
+    }),
+}));
+
+export const userAchievementsRelations = relations(userAchievementsTable, ({ one }) => ({
+    profile: one(userProfilesTable, {
+        fields: [userAchievementsTable.userEmail],
+        references: [userProfilesTable.userEmail],
+    }),
+}));
+
 export const coursesRelations = relations(coursesTable, ({ many }) => ({
     modules: many(courseModulesTable),
 }));

@@ -187,7 +187,7 @@ export default function Home() {
                 { icon: FileText, title: "Resume Architect", desc: "Gain a competitive edge with professionally AI-optimized resumes.", accent: "from-purple-500 to-indigo-500" },
                 { icon: FileEdit, title: "ATS Optimization", desc: "Receive actionable feedback to maximize applicant tracking system scores.", accent: "from-orange-500 to-rose-500" },
                 { icon: Map, title: "Smart Roadmaps", desc: "Discover interactive learning pathways tailored to your target roles.", accent: "from-emerald-500 to-teal-400" },
-                { icon: Sparkles, title: "AI Mock Interview", desc: "Practice with realistic AI interviews and get instant actionable feedback.", accent: "from-cyan-500 to-blue-600" },
+                { icon: Sparkles, title: "AI Mentorship", desc: "Practice with realistic AI interviews and get instant actionable feedback.", accent: "from-cyan-500 to-blue-600" },
                 { icon: FileText, title: "Readiness Score", desc: "Track your overall job-readiness with our proprietary AI scoring metric.", accent: "from-fuchsia-500 to-pink-500" },
               ].map((feature, i) => (
                 <div

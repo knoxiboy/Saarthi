@@ -21,7 +21,7 @@ export default function ProfilePage() {
                     <div className="flex-1 flex justify-center pb-24">
                         <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
                             <UserProfile
-                                path="/dashboard/profile"
+                                path="/dashboard/profile/account"
                                 appearance={{
                                     elements: {
                                         rootBox: "w-full shadow-none",
