@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useDropzone } from "react-dropzone"
-import { Upload, FileText, Send, CheckCircle2, AlertCircle, Sparkles, ArrowLeft, Loader2, Target, Zap, ShieldCheck, Briefcase, History, Trash2, Download } from "lucide-react"
+import { Upload, FileText, Send, CheckCircle2, AlertCircle, Sparkles, ArrowLeft, Loader2, Target, Zap, ShieldCheck, Briefcase, History, Trash2, Download, Link as LinkIcon, Globe, Navigation, ClipboardList, BarChart, Map as MapIcon } from "lucide-react"
 import axios from "axios"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -32,6 +32,9 @@ export default function ResumeAnalyzerPage() {
     const [jobDescription, setJobDescription] = useState("")
     const [fieldOfInterest, setFieldOfInterest] = useState("")
     const [targetRole, setTargetRole] = useState("")
+    const [inputMode, setInputMode] = useState<"url" | "text">("url")
+    const [jobUrl, setJobUrl] = useState("")
+    const [isExtracting, setIsExtracting] = useState(false)
 
     const [loading, setLoading] = useState(false)
     const [result, setResult] = useState<AnalysisResult | null>(null)
@@ -86,11 +89,42 @@ export default function ResumeAnalyzerPage() {
         setError(null)
         setResult(null)
 
+        let finalJD = jobDescription
+
+        // If in URL mode, extract first
+        if (useSpecificJD && inputMode === "url") {
+            if (!jobUrl) {
+                toast.error("Please provide a Job URL")
+                setLoading(false)
+                return
+            }
+            setIsExtracting(true)
+            try {
+                const extractRes = await axios.post("/api/assistant/extract", { url: jobUrl })
+                const extractedData = extractRes.data
+                finalJD = `
+Job Title: ${extractedData.jobTitle}
+Company: ${extractedData.companyName}
+Requirements: ${extractedData.requirements?.join(", ")}
+Platform: ${extractedData.platform}
+                `
+                setJobDescription(finalJD) // Sync for display if needed
+                toast.success("Job details extracted automatically!")
+            } catch (err: any) {
+                toast.error("Automatic extraction failed. Please try pasting the JD manually.")
+                setIsExtracting(false)
+                setLoading(false)
+                return
+            } finally {
+                setIsExtracting(false)
+            }
+        }
+
         const formData = new FormData()
         formData.append("resume", file)
 
         if (useSpecificJD) {
-            formData.append("jobDescription", jobDescription)
+            formData.append("jobDescription", finalJD)
         } else {
             formData.append("fieldOfInterest", fieldOfInterest)
             formData.append("targetRole", targetRole)
@@ -514,26 +548,63 @@ export default function ResumeAnalyzerPage() {
 
                             <div className="relative z-10 flex items-center gap-4 mb-8">
                                 <div className="w-14 h-14 bg-white/10 rounded-[1.25rem] flex items-center justify-center shadow-lg border border-white/10 group-hover/card:scale-105 transition-transform duration-500">
-                                    {useSpecificJD ? <FileText className="w-6 h-6 text-white" /> : <Briefcase className="w-6 h-6 text-white" />}
+                                    {useSpecificJD ? (inputMode === "url" ? <Globe className="w-6 h-6 text-white" /> : <FileText className="w-6 h-6 text-white" />) : <Briefcase className="w-6 h-6 text-white" />}
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-black text-white leading-none mb-1.5 uppercase tracking-tight">
-                                        {useSpecificJD ? "Job Description Matching" : "Industry Benchmark"}
+                                        {useSpecificJD ? (inputMode === "url" ? "Job URL Analysis" : "Job Description Matching") : "Industry Benchmark"}
                                     </h3>
                                     <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.15em]">
-                                        {useSpecificJD ? "Paste a target role for specific compatibility" : "Compare your profile against a field"}
+                                        {useSpecificJD ? (inputMode === "url" ? "Enter a link for automated extraction" : "Paste a target role for specific compatibility") : "Compare your profile against a field"}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="relative z-10 flex-1 flex flex-col gap-4">
                                 {useSpecificJD ? (
-                                    <textarea
-                                        value={jobDescription}
-                                        onChange={(e) => setJobDescription(e.target.value)}
-                                        placeholder="Paste the target role description here to get a specific ATS match score..."
-                                        className="flex-1 min-h-[200px] bg-white/5 border border-white/10 rounded-[1.5rem] p-6 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all resize-none mb-4 text-sm font-medium leading-relaxed backdrop-blur-sm"
-                                    />
+                                    <>
+                                        {/* Input Mode Toggle */}
+                                        <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 mb-2 backdrop-blur-md">
+                                            <button
+                                                onClick={() => setInputMode("url")}
+                                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${inputMode === "url"
+                                                    ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                                                    : "text-slate-500 hover:text-white hover:bg-white/5"
+                                                    }`}
+                                            >
+                                                <Globe className={`w-3.5 h-3.5 ${inputMode === "url" ? 'text-white' : 'text-slate-500'}`} />
+                                                Job URL
+                                            </button>
+                                            <button
+                                                onClick={() => setInputMode("text")}
+                                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${inputMode === "text"
+                                                    ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                                                    : "text-slate-500 hover:text-white hover:bg-white/5"
+                                                    }`}
+                                            >
+                                                <FileText className={`w-3.5 h-3.5 ${inputMode === "text" ? 'text-white' : 'text-slate-500'}`} />
+                                                Job Description
+                                            </button>
+                                        </div>
+
+                                        {inputMode === "url" ? (
+                                            <div className="space-y-4">
+                                                <Input
+                                                    value={jobUrl}
+                                                    onChange={(e) => setJobUrl(e.target.value)}
+                                                    placeholder="Paste Unstop, Internshala, Naukri or LinkedIn URL..."
+                                                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-600 h-20 rounded-2xl px-6 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all font-medium backdrop-blur-sm text-lg"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <textarea
+                                                value={jobDescription}
+                                                onChange={(e) => setJobDescription(e.target.value)}
+                                                placeholder="Paste the target role description here to get a specific ATS match score..."
+                                                className="flex-1 min-h-[200px] bg-white/5 border border-white/10 rounded-[1.5rem] p-6 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all resize-none mb-0 text-sm font-medium leading-relaxed backdrop-blur-sm"
+                                            />
+                                        )}
+                                    </>
                                 ) : (
                                     <div className="space-y-6 mb-4">
                                         <div className="space-y-3">
@@ -564,10 +635,10 @@ export default function ResumeAnalyzerPage() {
                                 className="relative z-10 w-full py-5 bg-white text-black rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_20px_40px_rgba(255,255,255,0.05)] group/btn overflow-hidden mt-6"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                                {loading ? (
+                                {loading || isExtracting ? (
                                     <>
                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                        <span>Analyzing Profile...</span>
+                                        <span>{isExtracting ? "Extracting Job Data..." : "Analyzing Profile..."}</span>
                                     </>
                                 ) : (
                                     <>
@@ -583,6 +654,7 @@ export default function ResumeAnalyzerPage() {
                     <div className="animate-in fade-in zoom-in-95 duration-700">
                         {/* Results View */}
                         <div className="flex flex-col gap-8">
+                            <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-4">Analysis Results</h2>
                             {/* Top Section: Score Card */}
                             <div className="bg-white/5 backdrop-blur-2xl rounded-[2.5rem] p-8 md:p-10 text-white shadow-2xl relative overflow-hidden border border-white/10 flex flex-col gap-8 w-full">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-3xl -mr-32 -mt-32 rounded-full" />
