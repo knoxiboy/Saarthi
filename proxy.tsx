@@ -4,7 +4,7 @@ const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
 
 const isPublicRoute = createRouteMatcher(['/sign-in', '/sign-up', '/api/inngest', '/']);
 
-export default clerkMiddleware(async (auth, req) => {
+export const proxy = clerkMiddleware(async (auth, req) => {
     // Skip middleware for Inngest API
     if (req.nextUrl.pathname.startsWith('/api/inngest')) {
         return;
