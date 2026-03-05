@@ -152,6 +152,10 @@ export async function GET(req: NextRequest) {
                 resumesBuilt: resumesBuiltCount[0]?.value || 0,
                 mentorshipChats: mentorshipChatsCount[0]?.value || 0,
             }
+        }, {
+            headers: {
+                "Cache-Control": "no-store, max-age=0",
+            }
         });
     } catch (error: any) {
         console.error("Profile API Error:", error);

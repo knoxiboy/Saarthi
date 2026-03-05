@@ -19,20 +19,28 @@ export default function SaarthiProfilePage() {
     const [profile, setProfile] = useState<any>(null)
     const [loading, setLoading] = useState(true)
 
-    const fetchProfile = useCallback(async () => {
-        setLoading(true)
+    const fetchProfile = useCallback(async (isRefresh = false) => {
+        if (!isRefresh) setLoading(true)
         try {
-            const response = await axios.get("/api/profile")
+            const response = await axios.get(`/api/profile?t=${Date.now()}`)
             setProfile(response.data)
         } catch (error) {
             console.error("Failed to fetch profile:", error)
         } finally {
-            setLoading(false)
+            if (!isRefresh) setLoading(false)
         }
     }, [])
 
     useEffect(() => {
         fetchProfile()
+
+        // Auto-refresh when window gains focus (e.g., coming back from another tool)
+        const handleFocus = () => {
+            fetchProfile(true)
+        }
+
+        window.addEventListener('focus', handleFocus)
+        return () => window.removeEventListener('focus', handleFocus)
     }, [fetchProfile])
 
     if (loading) {
