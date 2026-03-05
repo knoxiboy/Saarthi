@@ -51,7 +51,7 @@ const tools = [
         href: "/ai-tools/ai-chat",
         color: "from-emerald-600 to-teal-500",
         tag: "AI Coach",
-        features: ["Mock Interviews", "Salary Insights", "Real-time Advice"]
+        features: ["AI Mentorship", "Salary Insights", "Real-time Advice"]
     },
     {
         title: "Resume Builder",

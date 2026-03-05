@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useDropzone } from "react-dropzone"
-import { Upload, FileText, Send, CheckCircle2, AlertCircle, Sparkles, ArrowLeft, Loader2, Target, Zap, ShieldCheck, Briefcase, History, Trash2, Download, Link as LinkIcon, Globe, Navigation, ClipboardList, BarChart, Map as MapIcon } from "lucide-react"
+import { Upload, FileText, Send, ArrowUp, CheckCircle2, AlertCircle, Sparkles, ArrowLeft, Loader2, Target, Zap, ShieldCheck, Briefcase, History, Trash2, Download, Link as LinkIcon, Globe, Navigation, ClipboardList, BarChart, Map as MapIcon } from "lucide-react"
+import { motion } from "framer-motion"
 import axios from "axios"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -39,10 +40,25 @@ export default function ResumeAnalyzerPage() {
     const [loading, setLoading] = useState(false)
     const [result, setResult] = useState<AnalysisResult | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [profileResumeText, setProfileResumeText] = useState<string | null>(null)
+    const [profileResumeName, setProfileResumeName] = useState<string | null>(null)
+    const [useProfileResume, setUseProfileResume] = useState(false)
 
     const [view, setView] = useState<"generator" | "history">("generator")
     const [history, setHistory] = useState<ResumeAnalysisItem[]>([])
     const [fetchingHistory, setFetchingHistory] = useState(false)
+
+    const fetchProfile = useCallback(async () => {
+        try {
+            const res = await axios.get("/api/profile")
+            if (res.data) {
+                setProfileResumeText(res.data.resumeText)
+                setProfileResumeName(res.data.resumeName)
+            }
+        } catch (err) {
+            console.error("Failed to fetch profile resume:", err)
+        }
+    }, [])
 
     const fetchHistory = useCallback(async () => {
         setFetchingHistory(true)
@@ -58,7 +74,8 @@ export default function ResumeAnalyzerPage() {
 
     useEffect(() => {
         fetchHistory()
-    }, [fetchHistory])
+        fetchProfile()
+    }, [fetchHistory, fetchProfile])
 
     const handleDeleteHistory = async (e: React.MouseEvent, id: number) => {
         e.stopPropagation()
@@ -73,6 +90,7 @@ export default function ResumeAnalyzerPage() {
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         setFile(acceptedFiles[0])
+        setUseProfileResume(false)
         setError(null)
     }, [])
 
@@ -83,7 +101,10 @@ export default function ResumeAnalyzerPage() {
     })
 
     const handleAnalyze = async () => {
-        if (!file) return
+        if (!file && !useProfileResume) {
+            toast.error("Please upload a resume or select profile resume")
+            return
+        }
 
         setLoading(true)
         setError(null)
@@ -121,7 +142,12 @@ Platform: ${extractedData.platform}
         }
 
         const formData = new FormData()
-        formData.append("resume", file)
+        if (useProfileResume && profileResumeText) {
+            formData.append("resumeText", profileResumeText)
+            formData.append("resumeName", profileResumeName || "Profile Resume")
+        } else if (file) {
+            formData.append("resume", file)
+        }
 
         if (useSpecificJD) {
             formData.append("jobDescription", finalJD)
@@ -478,10 +504,19 @@ Platform: ${extractedData.platform}
                                 <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <div {...getRootProps()} className="relative z-10 flex flex-col items-center justify-center cursor-pointer min-h-[300px]">
                                     <input {...getInputProps()} />
-                                    <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600 transition-all duration-500 shadow-lg border border-white/10">
-                                        <Upload className="w-10 h-10 text-slate-400 group-hover:text-white transition-colors" />
+                                    <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 transition-all duration-500 shadow-lg border border-white/10 ${useProfileResume ? 'bg-blue-600 scale-110' : 'bg-white/10 group-hover:scale-110 group-hover:bg-blue-600'}`}>
+                                        {useProfileResume ? (
+                                            <ShieldCheck className="w-10 h-10 text-white" />
+                                        ) : (
+                                            <Upload className="w-10 h-10 text-slate-400 group-hover:text-white transition-colors" />
+                                        )}
                                     </div>
-                                    {file ? (
+                                    {useProfileResume ? (
+                                        <div className="text-center animate-in zoom-in-95 duration-300">
+                                            <p className="text-lg font-black text-white mb-1 uppercase tracking-tight">Using Profile Resume</p>
+                                            <p className="text-sm text-blue-400 font-bold uppercase tracking-widest">{profileResumeName || "READY FOR ANALYSIS"}</p>
+                                        </div>
+                                    ) : file ? (
                                         <div className="text-center animate-in zoom-in-95 duration-300">
                                             <p className="text-lg font-black text-white mb-1 uppercase tracking-tight">{file.name}</p>
                                             <p className="text-sm text-slate-500 font-bold">{(file.size / 1024 / 1024).toFixed(2)} MB • PDF READY</p>
@@ -496,6 +531,36 @@ Platform: ${extractedData.platform}
                                     )}
                                 </div>
                             </div>
+
+                            {profileResumeText && (
+                                <button
+                                    onClick={() => {
+                                        setUseProfileResume(true)
+                                        setFile(null)
+                                        toast.success("Using your analyzed Profile Resume")
+                                    }}
+                                    className={`w-full py-5 rounded-full border transition-all flex items-center justify-center gap-4 font-black text-xs uppercase tracking-[0.3em] relative overflow-hidden group/profile-btn ${useProfileResume
+                                        ? "bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-500/30 -translate-y-1"
+                                        : "bg-white border-white text-slate-900 hover:bg-slate-50 hover:shadow-xl hover:shadow-black/5"
+                                        }`}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover/profile-btn:translate-x-full transition-transform duration-1000" />
+                                    <ArrowUp className={`w-4 h-4 ${useProfileResume ? 'text-white' : 'text-slate-900'} group-hover/profile-btn:-translate-y-1 transition-transform`} />
+                                    <div className="flex flex-col items-start gap-0">
+                                        <span className="leading-tight">{useProfileResume ? "Profile Resume Selected" : "Use Profile Resume"}</span>
+                                        {profileResumeName && (
+                                            <span className={`text-[7px] font-bold tracking-widest leading-tight ${useProfileResume ? 'text-blue-100' : 'text-slate-600'}`}>
+                                                {profileResumeName}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {useProfileResume && (
+                                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute top-2 right-4">
+                                            <div className="w-2 h-2 rounded-full bg-white animate-ping" />
+                                        </motion.div>
+                                    )}
+                                </button>
+                            )}
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="p-5 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-xl transition-all hover:bg-white/10">
@@ -631,7 +696,7 @@ Platform: ${extractedData.platform}
 
                             <button
                                 onClick={handleAnalyze}
-                                disabled={loading || !file}
+                                disabled={loading || (!file && !useProfileResume)}
                                 className="relative z-10 w-full py-5 bg-white text-black rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_20px_40px_rgba(255,255,255,0.05)] group/btn overflow-hidden mt-6"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />

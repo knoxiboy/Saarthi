@@ -11,33 +11,40 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("resume") as File;
+    const directResumeText = formData.get("resumeText") as string || "";
+    const directResumeName = formData.get("resumeName") as string || "";
     const jobDescription = formData.get("jobDescription") as string || "";
     const fieldOfInterest = formData.get("fieldOfInterest") as string || "";
     const targetRole = formData.get("targetRole") as string || "";
 
-    if (!file) {
-      return NextResponse.json({ error: "Resume file is required" }, { status: 400 });
+    if (!file && !directResumeText) {
+      return NextResponse.json({ error: "Resume file or text is required" }, { status: 400 });
     }
 
     // 1. Extract text from PDF using pdf-parse (Robust, function-based)
-    const buffer = Buffer.from(await file.arrayBuffer());
     let resumeText = "";
+    let resumeName = directResumeName || file?.name || "Untitled Resume";
 
-    try {
-      // Safety check for pdfParse
-      const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
-      const data = await pdfParse(buffer);
-      resumeText = data.text;
-    } catch (parseError: any) {
-      console.error("PDF Parsing Error:", parseError);
-      return NextResponse.json({
-        error: "Failed to extract text from the PDF. Please ensure it's a valid PDF document.",
-        detail: parseError.message
-      }, { status: 422 });
+    if (directResumeText) {
+      resumeText = directResumeText;
+    } else {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      try {
+        // Safety check for pdfParse
+        const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
+        const data = await pdfParse(buffer);
+        resumeText = data.text;
+      } catch (parseError: any) {
+        console.error("PDF Parsing Error:", parseError);
+        return NextResponse.json({
+          error: "Failed to extract text from the PDF. Please ensure it's a valid PDF document.",
+          detail: parseError.message
+        }, { status: 422 });
+      }
     }
 
     if (!resumeText || resumeText.trim().length === 0) {
-      return NextResponse.json({ error: "Failed to extract text from the PDF" }, { status: 400 });
+      return NextResponse.json({ error: "Failed to extract text from the resume" }, { status: 400 });
     }
 
     // 3. AI Analysis using Groq
@@ -135,7 +142,7 @@ ${resumeText}
       await db.insert(resumeAnalysisTable).values({
         userEmail,
         resumeText,
-        resumeName: file.name,
+        resumeName: resumeName,
         jobDescription: displayTitle,
         analysisData: JSON.stringify(aiOutput)
       });

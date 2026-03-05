@@ -21,7 +21,9 @@ import {
     Wand2,
     Plus,
     FileSearch,
-    AlignLeft
+    AlignLeft,
+    ShieldCheck,
+    ArrowUp
 } from "lucide-react"
 import axios from "axios"
 import Link from "next/link"
@@ -106,10 +108,42 @@ function WritingStudioContent() {
     const [output, setOutput] = useState("")
     const [copied, setCopied] = useState(false)
 
-    // History State
     const [history, setHistory] = useState<DocumentItem[]>([])
     const [fetchingHistory, setFetchingHistory] = useState(false)
     const [initializedFromLink, setInitializedFromLink] = useState(false)
+
+    // Profile Resume Data
+    const [profileResumeText, setProfileResumeText] = useState("")
+    const [profileResumeName, setProfileResumeName] = useState("")
+    const [fetchingProfile, setFetchingProfile] = useState(false)
+
+    const fetchProfileData = useCallback(async () => {
+        setFetchingProfile(true)
+        try {
+            const response = await axios.get("/api/profile")
+            if (response.data.resumeText) {
+                setProfileResumeText(response.data.resumeText)
+                setProfileResumeName(response.data.resumeName)
+            }
+        } catch (err) {
+            console.error("Failed to fetch profile resume:", err)
+        } finally {
+            setFetchingProfile(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        fetchProfileData()
+    }, [fetchProfileData])
+
+    const handleAutoFetch = () => {
+        if (!profileResumeText) {
+            toast.error("No profile resume found. Please analyze a resume first.")
+            return
+        }
+        setUserDetails(profileResumeText)
+        toast.success("Personal details populated from your Profile Resume!")
+    }
 
     useEffect(() => {
         if (linkedIdParam && linkedDocParam && !initializedFromLink) {
@@ -491,6 +525,15 @@ function WritingStudioContent() {
                                             <h3 className="text-base font-black uppercase tracking-tighter">Personal Synthesis</h3>
                                             <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] leading-none">Key Experience or Achievements</p>
                                         </div>
+                                        {profileResumeText && (
+                                            <button
+                                                onClick={handleAutoFetch}
+                                                className="ml-auto flex items-center gap-2 px-4 py-2 bg-white text-black rounded-full font-black text-[8px] uppercase tracking-widest hover:bg-slate-100 transition-all shadow-lg group/fetch-btn"
+                                            >
+                                                <ArrowUp className="w-3 h-3 group-hover:-translate-y-0.5 transition-transform" />
+                                                Auto Fetch From Resume
+                                            </button>
+                                        )}
                                     </div>
                                     <textarea
                                         value={userDetails}
