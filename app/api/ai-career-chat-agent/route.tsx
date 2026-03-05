@@ -107,7 +107,7 @@ Tone: Professional, strategic, calm, intelligent.
 `;
 
         let activeModel = MODELS.PRIMARY;
-        let finalMessages: any[] = [
+        let finalMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
             { role: "system", content: systemPrompt }
         ];
 
@@ -122,8 +122,8 @@ Tone: Professional, strategic, calm, intelligent.
                     const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
                     const data = await pdfParse(buffer);
                     appendedText = `\n\n--- [Attached PDF Document: ${fileName || "Document.pdf"}] ---\n${data.text}\n---`;
-                } catch (pdfError: any) {
-                    console.error("PDF Parsing Error:", pdfError.message);
+                } catch (pdfError: unknown) {
+                    console.error("PDF Parsing Error:", pdfError instanceof Error ? pdfError.message : "Unknown error");
                     return NextResponse.json({ error: "Failed to parse PDF document. Please ensure it's not password protected." }, { status: 422 });
                 }
             } else if (fileType.startsWith("text/")) {
@@ -142,22 +142,22 @@ Tone: Professional, strategic, calm, intelligent.
             const historicalWindow = conversationHistory.slice(-10);
 
             // Take all but the last message (which is the current user input handled below)
-            const priorMessages = historicalWindow.slice(0, -1).map((msg: any) => {
+            const priorMessages = historicalWindow.slice(0, -1).map((msg: { role: string; content: string | { type: string; text: string }[] }) => {
                 let textContent = "";
                 if (typeof msg.content === "string") {
                     textContent = msg.content;
                 } else if (Array.isArray(msg.content)) {
                     // Extract text parts from multi-modal content for history stability
                     textContent = msg.content
-                        .filter((part: any) => part.type === "text")
-                        .map((part: any) => part.text)
+                        .filter((part) => part.type === "text")
+                        .map((part) => part.text)
                         .join("\n");
                 } else {
                     textContent = String(msg.content || "");
                 }
 
                 return {
-                    role: msg.role === "user" ? "user" : "assistant",
+                    role: (msg.role === "assistant" ? "assistant" : "user") as "user" | "assistant",
                     content: textContent || " " // Ensure non-empty string
                 };
             });
@@ -183,13 +183,14 @@ Tone: Professional, strategic, calm, intelligent.
         const aiResponse = data.choices[0].message.content;
         return NextResponse.json({ output: aiResponse });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         // chatWithGroq already logs errors, but we catch them for the HTTP response
-        const status = error.response?.status || 500;
-        const groqError = error.response?.data?.error?.message;
+        const err = error as { response?: { status?: number; data?: { error?: { message?: string } } }; message?: string };
+        const status = err.response?.status || 500;
+        const groqError = err.response?.data?.error?.message;
 
         return NextResponse.json({
-            error: groqError || error.message || "Internal Server Error"
+            error: groqError || err.message || "Internal Server Error"
         }, { status });
     }
 }

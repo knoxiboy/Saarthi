@@ -102,11 +102,12 @@ For each section, provide a "videoSearchQuery" that would yield the best high-qu
       courseId: inserted[0].id
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Course Generation Error:", error);
+    const err = error as { message?: string; response?: { data?: any } };
     return NextResponse.json({
-      error: error.message || "Failed to generate course",
-      details: error.response?.data || error.message
+      error: err.message || "Failed to generate course",
+      details: err.response?.data || err.message
     }, { status: 500 });
   }
 }

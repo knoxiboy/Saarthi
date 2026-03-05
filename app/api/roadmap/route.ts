@@ -93,11 +93,12 @@ Ensure the milestones are distributed logically across the whole period.
             id: inserted[0].id
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Roadmap Generation Error:", error);
+        const err = error as { message?: string; response?: { data?: any } };
         return NextResponse.json({
-            error: error.message || "Failed to generate roadmap",
-            details: error.response?.data || error.message
+            error: err.message || "Failed to generate roadmap",
+            details: err.response?.data || err.message
         }, { status: 500 });
     }
 }
