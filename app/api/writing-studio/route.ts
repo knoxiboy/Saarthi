@@ -4,9 +4,20 @@ import { MODELS } from "@/lib/ai/models";
 import { db } from "@/lib/db/db";
 import { writingStudioDocsTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkRateLimit, getRequestIP, AI_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     try {
+        // Rate limit check
+        const ip = getRequestIP(req);
+        const { limited, resetIn } = checkRateLimit(`writing:${ip}`, AI_RATE_LIMIT);
+        if (limited) {
+            return NextResponse.json(
+                { error: `Too many requests. Please try again in ${resetIn} seconds.` },
+                { status: 429 }
+            );
+        }
+
         const clerkUser = await currentUser();
         if (!clerkUser || !clerkUser.primaryEmailAddress?.emailAddress) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -7,9 +7,20 @@ import { db } from "@/lib/db/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { resumeAnalysisTable } from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
+import { checkRateLimit, getRequestIP, AI_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     try {
+        // Rate limit check
+        const ip = getRequestIP(req);
+        const { limited, resetIn } = checkRateLimit(`chat:${ip}`, AI_RATE_LIMIT);
+        if (limited) {
+            return NextResponse.json(
+                { error: `Too many requests. Please try again in ${resetIn} seconds.` },
+                { status: 429 }
+            );
+        }
+
         const clerkUser = await currentUser();
         const userEmail = clerkUser?.primaryEmailAddress?.emailAddress;
 
