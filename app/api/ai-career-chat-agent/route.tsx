@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 // Use pdf-parse-fork which is more stable in Next.js environments
 import pdf from "pdf-parse-fork";
-import { chatWithGroq } from "@/lib/groq";
+import { chatWithGroq } from "@/lib/ai/groq";
 
 export async function POST(req: any) {
     try {

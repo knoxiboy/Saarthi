@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chatWithGroq } from "@/lib/groq";
-import { db } from "@/configs/db";
-import { writingStudioDocsTable } from "@/configs/schema";
+import { chatWithGroq } from "@/lib/ai/groq";
+import { db } from "@/lib/db/db";
+import { writingStudioDocsTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 
 export async function POST(req: NextRequest) {

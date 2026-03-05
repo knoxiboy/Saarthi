@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { SignInButton, SignedIn, SignedOut, UserButton, SignOutButton } from "@clerk/nextjs"
-import Sidebar from "@/components/Sidebar"
+import Sidebar from "@/components/layout/Sidebar"
 import { FileText, Map, MessageCircle, FileEdit, Menu, Lightbulb, Sparkles, ArrowRight, TrendingUp, Target, Zap, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 

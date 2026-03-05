@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chatWithGroq } from "@/lib/groq";
+import { chatWithGroq } from "@/lib/ai/groq";
 // Use pdf-parse-fork which is more stable in Next.js environments
 import pdf from "pdf-parse-fork";
-import { db } from "@/configs/db";
-import { resumeAnalysisTable } from "@/configs/schema";
+import { db } from "@/lib/db/db";
+import { resumeAnalysisTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 
 // Forced Refresh: 2026-02-09T06:05:00Z
