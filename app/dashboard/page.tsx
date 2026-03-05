@@ -1,7 +1,13 @@
+import type { Metadata } from "next"
 import { currentUser } from "@clerk/nextjs/server";
 import { getFullUserProfile } from "@/lib/db/profile";
 import DashboardContent from "./DashboardContent";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+    title: "Dashboard | Saarthi AI Workspace",
+    description: "Your central hub for career growth. Monitor your job readiness, manage generated resumes, and track your personalized learning progress.",
+}
 
 export default async function DashboardPage() {
     const user = await currentUser();

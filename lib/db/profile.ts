@@ -11,10 +11,12 @@ import {
 } from "./schema";
 import { eq, count, desc } from "drizzle-orm";
 
+import { ProfileWithRelations } from "@/types";
+
 /**
  * Calculates a completion percentage based on the profile fields populated.
  */
-export function calculateCompletionPercentage(profile: any) {
+export function calculateCompletionPercentage(profile: ProfileWithRelations) {
     let score = 0;
     const weights = {
         basicInfo: 20,

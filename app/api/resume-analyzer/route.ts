@@ -43,14 +43,15 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
       try {
         // Safety check for pdfParse
-        const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
+        const pdfParse = typeof pdf === 'function' ? pdf : (pdf as unknown as { default: any }).default || pdf;
         const data = await pdfParse(buffer);
         resumeText = data.text;
-      } catch (parseError: any) {
-        console.error("PDF Parsing Error:", parseError);
+      } catch (parseError: unknown) {
+        const err = parseError as Error;
+        console.error("PDF Parsing Error:", err);
         return NextResponse.json({
           error: "Failed to extract text from the PDF. Please ensure it's a valid PDF document.",
-          detail: parseError.message
+          detail: err.message
         }, { status: 422 });
       }
     }
@@ -162,15 +163,16 @@ ${resumeText}
 
     return NextResponse.json(aiOutput);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; stack?: string; response?: { data?: any } };
     console.error("Resume Analysis Error Detail:", {
-      message: error.message,
-      stack: error.stack,
-      response: error.response?.data
+      message: err.message,
+      stack: err.stack,
+      response: err.response?.data
     });
     return NextResponse.json({
-      error: error.message || "Failed to analyze resume",
-      detail: error.response?.data || error.stack
+      error: err.message || "Failed to analyze resume",
+      detail: err.response?.data || err.stack
     }, { status: 500 });
   }
 }
