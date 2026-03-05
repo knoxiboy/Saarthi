@@ -116,7 +116,7 @@ export default function HistoryClient({ initialData }: HistoryClientProps) {
         }
     }
 
-    const filterBySearch = <T extends { title?: string; targetField?: string; chatTitle?: string; jobDescription?: string; resumeName?: string; context?: string }>(items: T[]) => {
+    const filterBySearch = (items: any[]): any[] => {
         if (!searchQuery) return items
         return items.filter(item => {
             const searchField = (item.title || item.targetField || item.chatTitle || item.jobDescription || item.resumeName || item.context || "").toLowerCase()

@@ -92,8 +92,22 @@ export default function WritingClient() {
     const fetchProfileData = useCallback(async () => {
         try {
             const result = await getUserProfileAction();
-            if (result.success && result.data?.resumeText) {
-                setProfileResumeText(result.data.resumeText)
+            if (result.success && result.data) {
+                const p = result.data;
+                const parts = [];
+                if (p.name) parts.push(`Name: ${p.name}`);
+                if (p.currentRole) parts.push(`Current Role: ${p.currentRole}`);
+
+                const skills = (p as any).skills;
+                if (skills && skills.length > 0) parts.push(`Skills: ${skills.map((s: any) => s.skillName).join(", ")}`);
+
+                const exp = (p as any).experience;
+                if (exp && exp.length > 0) Object.values(exp).forEach((e: any) => parts.push(`Experience: ${e.role} at ${e.company} (${e.startDate}-${e.endDate})`));
+
+                const edu = (p as any).education;
+                if (edu && edu.length > 0) Object.values(edu).forEach((e: any) => parts.push(`Education: ${e.degree} from ${e.institution}`));
+
+                setProfileResumeText(parts.join("\n"));
             }
         } catch (err) {
             console.error("Failed to fetch profile resume:", err)
@@ -143,7 +157,7 @@ export default function WritingClient() {
         try {
             const result = await getWritingHistoryAction(selectedDoc)
             if (result.success && result.data) {
-                setHistory(result.data as DocumentItem[])
+                setHistory(result.data as unknown as DocumentItem[])
             } else {
                 toast.error(result.error || "Failed to fetch history")
             }

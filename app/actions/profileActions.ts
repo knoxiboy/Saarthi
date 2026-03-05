@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db/db";
 import {
-    userProfileTable,
+    userProfilesTable,
     professionalLinksTable,
     userSkillsTable,
     userProjectsTable,
@@ -24,8 +24,8 @@ export async function getUserProfileAction() {
         }
         const userEmail = user.primaryEmailAddress.emailAddress;
 
-        const profile = await db.query.userProfileTable.findFirst({
-            where: eq(userProfileTable.userEmail, userEmail),
+        const profile = await db.query.userProfilesTable.findFirst({
+            where: eq(userProfilesTable.userEmail, userEmail),
             with: {
                 links: true,
                 skills: true,
@@ -136,7 +136,7 @@ export async function updateProfileAction(type: string, data: any) {
                 }
                 break;
             case "header":
-                await db.update(userProfileTable).set(data).where(eq(userProfileTable.userEmail, userEmail));
+                await db.update(userProfilesTable).set(data).where(eq(userProfilesTable.userEmail, userEmail));
                 break;
             default:
                 throw new Error("Invalid profile update type");

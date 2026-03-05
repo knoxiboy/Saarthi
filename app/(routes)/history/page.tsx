@@ -19,5 +19,5 @@ export default async function HistoryPage() {
 
     const historyData = await getUserHistory(userEmail);
 
-    return <HistoryClient initialData={historyData} />;
+    return <HistoryClient initialData={historyData as any} />;
 }

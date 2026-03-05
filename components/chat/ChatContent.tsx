@@ -65,7 +65,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ language, value }) => {
 
 export const MemoizedReactMarkdown = React.memo(
     ReactMarkdown,
-    (prevProps, nextProps) =>
+    (prevProps: any, nextProps: any) =>
         prevProps.children === nextProps.children &&
         prevProps.className === nextProps.className
 )

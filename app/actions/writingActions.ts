@@ -2,7 +2,7 @@
 
 import { currentUser } from "@clerk/nextjs/server"
 import { db } from "@/lib/db/db"
-import { writingStudioTable } from "@/lib/db/schema"
+import { writingStudioDocsTable } from "@/lib/db/schema"
 import { eq, and, desc } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
@@ -16,14 +16,14 @@ export async function getWritingHistoryAction(docType: string) {
         }
 
         const history = await db.select()
-            .from(writingStudioTable)
+            .from(writingStudioDocsTable)
             .where(
                 and(
-                    eq(writingStudioTable.userEmail, userEmail),
-                    eq(writingStudioTable.docType, docType)
+                    eq(writingStudioDocsTable.userEmail, userEmail),
+                    eq(writingStudioDocsTable.docType, docType)
                 )
             )
-            .orderBy(desc(writingStudioTable.createdAt));
+            .orderBy(desc(writingStudioDocsTable.createdAt));
 
         return { success: true, data: history };
     } catch (error: any) {
@@ -42,11 +42,11 @@ export async function getWritingItemAction(id: number) {
         }
 
         const [item] = await db.select()
-            .from(writingStudioTable)
+            .from(writingStudioDocsTable)
             .where(
                 and(
-                    eq(writingStudioTable.id, id),
-                    eq(writingStudioTable.userEmail, userEmail)
+                    eq(writingStudioDocsTable.id, id),
+                    eq(writingStudioDocsTable.userEmail, userEmail)
                 )
             )
             .limit(1);
@@ -71,11 +71,11 @@ export async function deleteWritingItemAction(id: number) {
             return { success: false, error: "Unauthorized" };
         }
 
-        await db.delete(writingStudioTable)
+        await db.delete(writingStudioDocsTable)
             .where(
                 and(
-                    eq(writingStudioTable.id, id),
-                    eq(writingStudioTable.userEmail, userEmail)
+                    eq(writingStudioDocsTable.id, id),
+                    eq(writingStudioDocsTable.userEmail, userEmail)
                 )
             );
 
