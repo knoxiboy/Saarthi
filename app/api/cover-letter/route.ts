@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chatWithGroq } from "@/lib/groq";
-import { db } from "@/configs/db";
-import { coverLettersTable } from "@/configs/schema";
+import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
+import { db } from "@/lib/db/db";
+import { coverLettersTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkRateLimit, getRequestIP, AI_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     try {
+        // Rate limit check
+        const ip = getRequestIP(req);
+        const { limited, resetIn } = checkRateLimit(`cover:${ip}`, AI_RATE_LIMIT);
+        if (limited) {
+            return NextResponse.json(
+                { error: `Too many requests. Please try again in ${resetIn} seconds.` },
+                { status: 429 }
+            );
+        }
+
         const user = await currentUser();
         const userEmail = user?.primaryEmailAddress?.emailAddress;
 
@@ -44,7 +56,7 @@ Write a professional cover letter based on these details.
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
         ], {
-            model: "llama-3.3-70b-versatile",
+            model: MODELS.PRIMARY,
             temperature: 0.7,
         });
 

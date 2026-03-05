@@ -1,19 +1,19 @@
 "use server"
 
-import { db } from "@/configs/db";
+import { db } from "@/lib/db/db";
 import {
     coursesTable,
     courseModulesTable,
     courseLessonsTable,
     courseProgressTable
-} from "@/configs/schema";
+} from "@/lib/db/schema";
 import {
     generateCourseOutline,
     generateLessonContent,
     generateQuiz,
     rankYouTubeVideos
-} from "@/lib/bedrock";
-import { searchYoutubeVideos } from "@/lib/youtube";
+} from "@/lib/ai/bedrock";
+import { searchYoutubeVideos } from "@/lib/ai/youtube";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { SignedIn, UserButton, useClerk } from "@clerk/nextjs"
-import Sidebar from "@/components/Sidebar"
+import Sidebar from "./Sidebar"
 import { Menu, LogOut } from "lucide-react"
 import Link from "next/link"
 import {

@@ -1,14 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chatWithGroq } from "@/lib/groq";
+import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
 // Use pdf-parse-fork which is more stable in Next.js environments
 import pdf from "pdf-parse-fork";
-import { db } from "@/configs/db";
-import { resumeAnalysisTable } from "@/configs/schema";
+import { db } from "@/lib/db/db";
+import { resumeAnalysisTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkRateLimit, getRequestIP, AI_RATE_LIMIT } from "@/lib/rate-limit";
 
 // Forced Refresh: 2026-02-09T06:05:00Z
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit check
+    const ip = getRequestIP(req);
+    const { limited, resetIn } = checkRateLimit(`resume:${ip}`, AI_RATE_LIMIT);
+    if (limited) {
+      return NextResponse.json(
+        { error: `Too many requests. Please try again in ${resetIn} seconds.` },
+        { status: 429 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("resume") as File;
     const directResumeText = formData.get("resumeText") as string || "";
@@ -117,7 +129,7 @@ ${resumeText}
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
     ], {
-      model: "llama-3.3-70b-versatile",
+      model: MODELS.PRIMARY,
       response_format: { type: "json_object" }
     });
 

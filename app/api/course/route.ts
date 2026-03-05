@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chatWithGroq } from "@/lib/groq";
-import { db } from "@/configs/db";
-import { coursesTable } from "@/configs/schema";
+import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
+import { db } from "@/lib/db/db";
+import { coursesTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkRateLimit, getRequestIP, AI_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit check
+    const ip = getRequestIP(req);
+    const { limited, resetIn } = checkRateLimit(`course:${ip}`, AI_RATE_LIMIT);
+    if (limited) {
+      return NextResponse.json(
+        { error: `Too many requests. Please try again in ${resetIn} seconds.` },
+        { status: 429 }
+      );
+    }
+
     const user = await currentUser();
     const userEmail = user?.primaryEmailAddress?.emailAddress;
 
@@ -66,7 +78,7 @@ For each section, provide a "videoSearchQuery" that would yield the best high-qu
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
     ], {
-      model: "llama-3.3-70b-versatile",
+      model: MODELS.PRIMARY,
       response_format: { type: "json_object" }
     });
 
@@ -90,11 +102,12 @@ For each section, provide a "videoSearchQuery" that would yield the best high-qu
       courseId: inserted[0].id
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Course Generation Error:", error);
+    const err = error as { message?: string; response?: { data?: any } };
     return NextResponse.json({
-      error: error.message || "Failed to generate course",
-      details: error.response?.data || error.message
+      error: err.message || "Failed to generate course",
+      details: err.response?.data || err.message
     }, { status: 500 });
   }
 }

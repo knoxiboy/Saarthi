@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { extractJobData } from "@/lib/assistant-utils";
+import { extractJobData } from "@/lib/ai/assistant-utils";
 
 export async function POST(req: Request) {
     try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/configs/db";
-import { writingStudioDocsTable } from "@/configs/schema";
+import { db } from "@/lib/db/db";
+import { writingStudioDocsTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and, desc } from "drizzle-orm";
 

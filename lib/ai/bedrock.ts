@@ -1,4 +1,5 @@
 import { chatWithGroq } from "./groq";
+import { MODELS } from "./models";
 import { z } from "zod";
 
 // Zod Schemas for Validation
@@ -96,7 +97,7 @@ export async function generateCourseOutline(topic: string, level: string, durati
     }`;
 
     try {
-        const raw = await callGroqPremium("llama-3.3-70b-versatile", systemPrompt, userPrompt);
+        const raw = await callGroqPremium(MODELS.PRIMARY, systemPrompt, userPrompt);
         console.log("[BEDROCK] Raw Outline Response:", raw);
 
         let parsed;
@@ -165,7 +166,7 @@ export async function generateLessonContent(lessonTitle: string, focus: string, 
     let attempt = 0;
     while (attempt < 2) {
         try {
-            const raw = await callGroqPremium("llama-3.3-70b-versatile", systemPrompt, userPrompt);
+            const raw = await callGroqPremium(MODELS.PRIMARY, systemPrompt, userPrompt);
             const parsed = LessonContentSchema.parse(JSON.parse(raw));
 
             // Basic word count enforcement
@@ -210,7 +211,7 @@ export async function generateQuiz(content: string) {
     }`;
 
     try {
-        const raw = await callGroqPremium("llama-3.1-8b-instant", systemPrompt, userPrompt);
+        const raw = await callGroqPremium(MODELS.QUIZ, systemPrompt, userPrompt);
         return QuizSchema.parse(JSON.parse(raw));
     } catch (error) {
         console.error("Quiz Generation Failed:", error);
@@ -231,7 +232,7 @@ export async function rankYouTubeVideos(videos: any[], level: string) {
     ${videos.map((v, i) => `${i + 1}. Title: ${v.title} | Channel: ${v.channelTitle} | ID: ${v.videoId}`).join("\n")}`;
 
     try {
-        const videoId = await callGroqPremium("llama-3.1-8b-instant", systemPrompt, userPrompt, false);
+        const videoId = await callGroqPremium(MODELS.RANKING, systemPrompt, userPrompt, false);
         return videoId.trim().replace(/['"]/g, "");
     } catch (error) {
         return videos[0]?.videoId; // Fallback to first

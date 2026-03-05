@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chatWithGroq } from "@/lib/groq";
-import { db } from "@/configs/db";
-import { roadmapsTable } from "@/configs/schema";
+import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
+import { db } from "@/lib/db/db";
+import { roadmapsTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
+import { checkRateLimit, getRequestIP, AI_RATE_LIMIT } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     try {
+        // Rate limit check
+        const ip = getRequestIP(req);
+        const { limited, resetIn } = checkRateLimit(`roadmap:${ip}`, AI_RATE_LIMIT);
+        if (limited) {
+            return NextResponse.json(
+                { error: `Too many requests. Please try again in ${resetIn} seconds.` },
+                { status: 429 }
+            );
+        }
+
         const user = await currentUser();
         const userEmail = user?.primaryEmailAddress?.emailAddress;
 
@@ -59,7 +71,7 @@ Ensure the milestones are distributed logically across the whole period.
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
         ], {
-            model: "llama-3.3-70b-versatile",
+            model: MODELS.PRIMARY,
             response_format: { type: "json_object" }
         });
 
@@ -81,11 +93,12 @@ Ensure the milestones are distributed logically across the whole period.
             id: inserted[0].id
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Roadmap Generation Error:", error);
+        const err = error as { message?: string; response?: { data?: any } };
         return NextResponse.json({
-            error: error.message || "Failed to generate roadmap",
-            details: error.response?.data || error.message
+            error: err.message || "Failed to generate roadmap",
+            details: err.response?.data || err.message
         }, { status: 500 });
     }
 }

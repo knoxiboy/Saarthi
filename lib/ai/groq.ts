@@ -1,4 +1,5 @@
 import axios from "axios";
+import { MODELS } from "./models";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -13,12 +14,12 @@ export interface GroqOptions {
 }
 
 const DEFAULT_OPTIONS: GroqOptions = {
-    model: "llama-3.3-70b-versatile",
+    model: MODELS.PRIMARY,
     temperature: 0.7,
     max_tokens: 1024,
 };
 
-const FALLBACK_MODEL = "llama-3.1-8b-instant";
+const FALLBACK_MODEL = MODELS.FALLBACK;
 
 /**
  * Executes a chat completion request to Groq with built-in retry logic and model failover.

@@ -1,10 +1,10 @@
 {
-  "name": "nextjs-boilerplate-1",
+  "name": "saarthi",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next dev",
-    "build": "cross-env NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--max-old-space-size=4096 next build",
+    "build": "cross-env NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--max-old-space-size=4096 next build --webpack",
     "start": "next start",
     "lint": "next lint"
   },
