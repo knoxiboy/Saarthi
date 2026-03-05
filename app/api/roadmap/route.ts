@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
 import { db } from "@/lib/db/db";
 import { roadmapsTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
@@ -59,7 +60,7 @@ Ensure the milestones are distributed logically across the whole period.
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
         ], {
-            model: "llama-3.3-70b-versatile",
+            model: MODELS.PRIMARY,
             response_format: { type: "json_object" }
         });
 

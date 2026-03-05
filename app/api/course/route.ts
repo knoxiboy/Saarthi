@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatWithGroq } from "@/lib/ai/groq";
-import { generateCourseOutline } from "@/lib/ai/bedrock";
+import { MODELS } from "@/lib/ai/models";
 import { db } from "@/lib/db/db";
 import { coursesTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
@@ -67,7 +67,7 @@ For each section, provide a "videoSearchQuery" that would yield the best high-qu
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
     ], {
-      model: "llama-3.3-70b-versatile",
+      model: MODELS.PRIMARY,
       response_format: { type: "json_object" }
     });
 

@@ -20,6 +20,7 @@ import {
 import { currentUser } from "@clerk/nextjs/server";
 import { count, eq } from "drizzle-orm";
 import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
 import pdf from "pdf-parse-fork";
 
 function calculateCompletionPercentage(profile: any) {
@@ -251,7 +252,7 @@ export async function POST(req: NextRequest) {
             { role: "user", content: prompt }
         ], {
             response_format: { type: "json_object" },
-            model: "llama-3.3-70b-versatile"
+            model: MODELS.PRIMARY
         });
 
         const extractedData = JSON.parse(response.choices[0].message.content || "{}");

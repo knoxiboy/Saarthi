@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Use pdf-parse-fork which is more stable in Next.js environments
 import pdf from "pdf-parse-fork";
 import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
 import { db } from "@/lib/db/db";
 import { currentUser } from "@clerk/nextjs/server";
 import { resumeAnalysisTable } from "@/lib/db/schema";
@@ -94,7 +95,7 @@ If user asks about resume (or if they upload a resume PDF/image):
 Tone: Professional, strategic, calm, intelligent.
 `;
 
-        let activeModel = "llama-3.3-70b-versatile";
+        let activeModel = MODELS.PRIMARY;
         let finalMessages: any[] = [
             { role: "system", content: systemPrompt }
         ];

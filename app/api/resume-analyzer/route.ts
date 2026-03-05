@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
 // Use pdf-parse-fork which is more stable in Next.js environments
 import pdf from "pdf-parse-fork";
 import { db } from "@/lib/db/db";
@@ -117,7 +118,7 @@ ${resumeText}
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
     ], {
-      model: "llama-3.3-70b-versatile",
+      model: MODELS.PRIMARY,
       response_format: { type: "json_object" }
     });
 

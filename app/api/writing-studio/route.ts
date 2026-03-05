@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
 import { db } from "@/lib/db/db";
 import { writingStudioDocsTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
@@ -53,7 +54,7 @@ Output only the generated document content. No conversational filler.
             { role: "system", content: systemPrompt },
             { role: "user", content: `Generate the ${docTypeNames[docType]} based on the context provided.` }
         ], {
-            model: "llama-3.3-70b-versatile",
+            model: MODELS.PRIMARY,
             temperature: 0.7,
             max_tokens: 2048,
         });

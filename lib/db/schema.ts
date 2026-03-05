@@ -89,7 +89,7 @@ export const coursesTable = pgTable("courses", {
 
 export const courseModulesTable = pgTable("course_modules", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    courseId: integer().references(() => coursesTable.id),
+    courseId: integer().references(() => coursesTable.id, { onDelete: 'cascade' }),
     title: varchar({ length: 255 }).notNull(),
     description: text(),
     order: integer().notNull(),
@@ -98,7 +98,7 @@ export const courseModulesTable = pgTable("course_modules", {
 
 export const courseLessonsTable = pgTable("course_lessons", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    moduleId: integer().references(() => courseModulesTable.id),
+    moduleId: integer().references(() => courseModulesTable.id, { onDelete: 'cascade' }),
     title: varchar({ length: 255 }).notNull(),
     depthLevel: varchar({ length: 50 }),
     explanation: text(), // 800+ words
@@ -119,7 +119,7 @@ export const courseLessonsTable = pgTable("course_lessons", {
 export const courseProgressTable = pgTable("course_progress", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     userEmail: varchar({ length: 255 }).notNull(),
-    lessonId: integer().references(() => courseLessonsTable.id),
+    lessonId: integer().references(() => courseLessonsTable.id, { onDelete: 'cascade' }),
     completed: boolean().default(false).notNull(),
     quizScore: integer(),
     updatedAt: timestamp().defaultNow().notNull(),

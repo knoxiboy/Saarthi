@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatWithGroq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
 import { db } from "@/lib/db/db";
 import { coverLettersTable } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
@@ -44,7 +45,7 @@ Write a professional cover letter based on these details.
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
         ], {
-            model: "llama-3.3-70b-versatile",
+            model: MODELS.PRIMARY,
             temperature: 0.7,
         });
 
