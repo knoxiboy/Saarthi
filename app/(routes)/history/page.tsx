@@ -238,10 +238,10 @@ function HistoryContent() {
     return (
         <div className="min-h-screen bg-slate-950 relative overflow-hidden flex flex-col">
             {/* Atmospheric Decor */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] -mr-48 -mt-48 rounded-full pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] -mr-48 -mt-20 rounded-full pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-600/5 blur-[120px] -ml-48 -mb-48 rounded-full pointer-events-none" />
 
-            <div className="p-8 lg:p-16 space-y-12 max-w-7xl mx-auto w-full relative z-10">
+            <div className="p-8 lg:p-12 space-y-12 max-w-[1600px] mx-auto w-full relative z-10">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-12">
                     <div className="space-y-4">
@@ -256,23 +256,9 @@ function HistoryContent() {
                             Review and manage all your past interactions, generated documents, and analyses.
                         </p>
                     </div>
-
-                    <div className="relative group w-full md:w-96">
-                        <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
-                            <Search className="w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="SEARCH HISTORY..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-14 pr-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-xl transition-all shadow-2xl"
-                        />
-                    </div>
                 </div>
-
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
-                    <TabsList className="bg-white/5 p-2 px-6 md:px-8 rounded-[2rem] h-auto flex flex-nowrap gap-2 overflow-x-auto no-scrollbar justify-start md:justify-center border border-white/10 backdrop-blur-xl shadow-xl">
+                    <TabsList className="bg-white/5 p-2 px-10 md:px-14 rounded-full h-auto flex flex-nowrap gap-4 md:gap-8 overflow-x-auto justify-start border border-white/10 backdrop-blur-xl shadow-2xl w-full md:w-fit max-w-[95vw] md:max-w-[85vw] xl:max-w-6xl mx-auto pb-4 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-track]:bg-white/5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gradient-to-r [&::-webkit-scrollbar-thumb]:from-blue-600 [&::-webkit-scrollbar-thumb]:to-purple-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:from-blue-400 hover:[&::-webkit-scrollbar-thumb]:to-purple-400 transition-all">
                         {[
                             { id: "roadmaps", icon: Map, label: "Roadmaps", count: roadmaps.length },
                             { id: "courses", icon: BookOpen, label: "Courses", count: courses.length },
@@ -284,7 +270,7 @@ function HistoryContent() {
                             <TabsTrigger
                                 key={tab.id}
                                 value={tab.id}
-                                className="rounded-[1.5rem] px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-[0_0_20px_rgba(37,99,235,0.3)] text-slate-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center gap-3 whitespace-nowrap group relative"
+                                className="rounded-full px-4 md:px-6 py-2.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-[0_0_20px_rgba(37,99,235,0.4)] text-slate-400 hover:text-white font-bold text-[10px] md:text-xs uppercase tracking-wider transition-all duration-300 flex items-center gap-2 md:gap-3 whitespace-nowrap group relative"
                             >
                                 <tab.icon className="w-4 h-4 transition-transform group-hover:scale-110" />
                                 {tab.label}

@@ -18,8 +18,6 @@ export default function ResumeIntelligence({ insights, onUpdateResume }: ResumeI
 
     const stats = [
         { label: "ATS Score", value: insights.atsScore + "/100", icon: Target, color: "text-blue-400" },
-        { label: "Keywords", value: insights.keywordStrength, icon: Zap, color: "text-yellow-400" },
-        { label: "Project Impact", value: insights.projectImpact, icon: Sparkles, color: "text-purple-400" }
     ]
 
     const scoreBreakdown = typeof insights.breakdown === 'string' ? JSON.parse(insights.breakdown) : (insights.breakdown || {})
