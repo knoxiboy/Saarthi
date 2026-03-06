@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, UserCircle } from "lucide-react"
@@ -22,7 +22,14 @@ interface ProfileClientWrapperProps {
 
 export default function ProfileClientWrapper({ initialProfile }: ProfileClientWrapperProps) {
     const [profile, setProfile] = useState<any>(initialProfile)
+    const [isUpdating, setIsUpdating] = useState(false)
     const router = useRouter()
+
+    useEffect(() => {
+        if (!isUpdating) {
+            setProfile(initialProfile)
+        }
+    }, [initialProfile, isUpdating])
 
     const handleUpdate = () => {
         // Trigger server-side revalidation
@@ -31,7 +38,7 @@ export default function ProfileClientWrapper({ initialProfile }: ProfileClientWr
 
     return (
         <AnimatePresence mode="wait">
-            {!profile ? (
+            {(!profile || isUpdating) ? (
                 <motion.div
                     key="onboarding"
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -39,7 +46,7 @@ export default function ProfileClientWrapper({ initialProfile }: ProfileClientWr
                     exit={{ opacity: 0, scale: 1.05 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <Onboarding onComplete={(p) => { setProfile(p); handleUpdate(); }} />
+                    <Onboarding onComplete={(p) => { setIsUpdating(false); setProfile(p); handleUpdate(); }} />
                 </motion.div>
             ) : (
                 <motion.div
@@ -76,7 +83,7 @@ export default function ProfileClientWrapper({ initialProfile }: ProfileClientWr
                         <ProfileHeader data={profile} onUpdate={handleUpdate} />
                         <ResumeIntelligence
                             insights={profile.insights}
-                            onUpdateResume={() => { setProfile(null); handleUpdate(); }}
+                            onUpdateResume={() => setIsUpdating(true)}
                         />
                         <ProfessionalLinks links={profile.links} onUpdate={handleUpdate} />
                         <CareerJourney
