@@ -16,7 +16,7 @@ interface AIInsightsProps {
         docsGenerated: number
         resumesAnalysed: number
         resumesBuilt: number
-        mentorshipChats: number
+        mentorshipConversations: number
     } | null
 }
 
@@ -70,7 +70,7 @@ export default function AIInsights({ insights, metrics }: AIInsightsProps) {
                             { label: "AI Docs", value: metrics.docsGenerated, icon: PenTool, color: "text-green-400" },
                             { label: "Resume Analysed", value: metrics.resumesAnalysed, icon: FileText, color: "text-yellow-400" },
                             { label: "Resume Built", value: metrics.resumesBuilt, icon: FileText, color: "text-rose-400" },
-                            { label: "Mentorship Chat", value: metrics.mentorshipChats, icon: MessageCircle, color: "text-cyan-400" }
+                            { label: "Mentorship Chat", value: metrics.mentorshipConversations, icon: MessageCircle, color: "text-cyan-400" }
                         ].map((stat, i) => (
                             <div key={i} className="bg-white/5 p-3 rounded-2xl border border-white/5 group hover:bg-white/10 transition-colors">
                                 <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-slate-400 transition-colors whitespace-nowrap">{stat.label}</p>
