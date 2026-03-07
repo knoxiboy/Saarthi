@@ -7,10 +7,10 @@ import Groq from "groq-sdk";
 
 // Initialize Amazon Bedrock client for all Generation/Chat capabilities
 export const bedrockClient = new BedrockRuntimeClient({
-    region: process.env.AWS_REGION || "us-east-1",
+    region: process.env.MY_AWS_REGION || "us-east-1",
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+        accessKeyId: process.env.MY_AWS_ACCESS_KEY_ID || "",
+        secretAccessKey: process.env.MY_AWS_SECRET_ACCESS_KEY || "",
     }
 });
 
