@@ -250,7 +250,35 @@ export default function CareerJourney({
                                             )}
                                         </div>
                                     </div>
-                                    {exp.description && <p className="text-sm text-slate-400 leading-relaxed font-medium line-clamp-2 group-hover:line-clamp-none transition-all">{exp.description}</p>}
+                                    {exp.description && (
+                                        <div className="text-sm text-slate-400 leading-relaxed font-medium space-y-1">
+                                            {(() => {
+                                                try {
+                                                    // If it's a JSON string (likely an array)
+                                                    if (exp.description.startsWith('[') || exp.description.startsWith('{')) {
+                                                        const parsed = JSON.parse(exp.description);
+                                                        if (Array.isArray(parsed)) {
+                                                            return parsed.map((bullet, idx) => (
+                                                                <p key={idx} className="flex gap-2">
+                                                                    <span className="text-blue-500">•</span>
+                                                                    {bullet}
+                                                                </p>
+                                                            ));
+                                                        }
+                                                    }
+                                                    // Handle comma separated or bullet separated strings
+                                                    return exp.description.split(/[•\n]/).filter(s => s.trim()).map((bullet, idx) => (
+                                                        <p key={idx} className="flex gap-2">
+                                                            <span className="text-blue-500">•</span>
+                                                            {bullet.trim()}
+                                                        </p>
+                                                    ));
+                                                } catch (e) {
+                                                    return <p>{exp.description}</p>;
+                                                }
+                                            })()}
+                                        </div>
+                                    )}
                                 </motion.div>
                             ))}
                         </div>

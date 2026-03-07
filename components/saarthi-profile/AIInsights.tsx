@@ -40,64 +40,69 @@ export default function AIInsights({ insights, metrics }: AIInsightsProps) {
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center gap-10">
-                    {/* Readiness Circular Score */}
-                    <div className="relative shrink-0 scale-110">
-                        <svg className="w-32 h-32 transform -rotate-90">
-                            <circle cx="50%" cy="50%" r="48" className="stroke-white/5 fill-none" strokeWidth="8" />
-                            <motion.circle
-                                cx="50%" cy="50%" r="48"
-                                className="stroke-blue-500 fill-none"
-                                strokeWidth="8"
-                                strokeDasharray="301.6"
-                                initial={{ strokeDashoffset: 301.6 }}
-                                animate={{ strokeDashoffset: 301.6 - (301.6 * insights.jobReadinessScore) / 100 }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-3xl font-black text-white">{insights.jobReadinessScore}</span>
-                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Readiness</span>
+                <div className="space-y-12">
+                    {/* Top Row: Circle + Compact Metrics */}
+                    <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                        {/* Readiness Circular Score */}
+                        <div className="relative shrink-0 scale-110 md:scale-125 py-4">
+                            <svg className="w-32 h-32 transform -rotate-90">
+                                <circle cx="50%" cy="50%" r="48" className="stroke-white/5 fill-none" strokeWidth="8" />
+                                <motion.circle
+                                    cx="50%" cy="50%" r="48"
+                                    className="stroke-blue-500 fill-none"
+                                    strokeWidth="10"
+                                    strokeDasharray="301.6"
+                                    initial={{ strokeDashoffset: 301.6 }}
+                                    animate={{ strokeDashoffset: 301.6 - (301.6 * insights.jobReadinessScore) / 100 }}
+                                    transition={{ duration: 1.5, ease: "easeOut" }}
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-3xl font-black text-white">{insights.jobReadinessScore}</span>
+                                <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Readiness</span>
+                            </div>
+                        </div>
+
+                        {/* Platform Metrics Grid - Compact 3-Column */}
+                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-3 w-full">
+                            {[
+                                { label: "Roadmaps", value: metrics.roadmapsGenerated, icon: Map, color: "text-blue-400" },
+                                { label: "Courses", value: metrics.coursesGenerated, icon: BookOpen, color: "text-purple-400" },
+                                { label: "AI Docs", value: metrics.docsGenerated, icon: PenTool, color: "text-green-400" },
+                                { label: "Analysed", value: metrics.resumesAnalysed, icon: FileText, color: "text-yellow-400" },
+                                { label: "Built", value: metrics.resumesBuilt, icon: FileText, color: "text-rose-400" },
+                                { label: "Chat", value: metrics.mentorshipConversations, icon: MessageCircle, color: "text-cyan-400" }
+                            ].map((stat, i) => (
+                                <div key={i} className="bg-white/5 p-3 rounded-2xl border border-white/5 group hover:bg-white/10 transition-colors text-center">
+                                    <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-slate-400 transition-colors truncate">{stat.label}</p>
+                                    <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    {/* Platform Metrics Grid */}
-                    <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-3 w-full">
-                        {[
-                            { label: "Roadmaps", value: metrics.roadmapsGenerated, icon: Map, color: "text-blue-400" },
-                            { label: "Courses", value: metrics.coursesGenerated, icon: BookOpen, color: "text-purple-400" },
-                            { label: "AI Docs", value: metrics.docsGenerated, icon: PenTool, color: "text-green-400" },
-                            { label: "Resume Analysed", value: metrics.resumesAnalysed, icon: FileText, color: "text-yellow-400" },
-                            { label: "Resume Built", value: metrics.resumesBuilt, icon: FileText, color: "text-rose-400" },
-                            { label: "Mentorship Chat", value: metrics.mentorshipConversations, icon: MessageCircle, color: "text-cyan-400" }
-                        ].map((stat, i) => (
-                            <div key={i} className="bg-white/5 p-3 rounded-2xl border border-white/5 group hover:bg-white/10 transition-colors">
-                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-slate-400 transition-colors whitespace-nowrap">{stat.label}</p>
-                                <p className={`text-lg font-black ${stat.color}`}>{stat.value}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Readiness Breakdown */}
-                {Object.keys(scoreBreakdown).length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-white/5">
-                        {Object.entries(scoreBreakdown).map(([key, val]: [string, any], i) => (
-                            <div key={i} className="space-y-1.5">
-                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest line-clamp-1">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
-                                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                    <motion.div
-                                        initial={{ width: 0 }}
-                                        whileInView={{ width: `${val}%` }}
-                                        className="h-full bg-blue-500/50"
-                                    />
+                    {/* Bottom Row: Full Width Breakdown Bars */}
+                    {Object.keys(scoreBreakdown).length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-8 border-t border-white/5">
+                            {Object.entries(scoreBreakdown).map(([key, val]: [string, any], i) => (
+                                <div key={i} className="space-y-2 w-full">
+                                    <div className="flex justify-between items-end">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                                        <p className="text-xs font-black text-white">{val}%</p>
+                                    </div>
+                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden w-full">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            whileInView={{ width: `${val}%` }}
+                                            className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-cyan-400"
+                                        />
+                                    </div>
                                 </div>
-                                <p className="text-[10px] font-black text-white">{val}%</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* AI Recommendations Column */}
@@ -129,22 +134,6 @@ export default function AIInsights({ insights, metrics }: AIInsightsProps) {
                             </p>
                         </motion.div>
                     ))}
-                </div>
-
-                {/* Quick Actions */}
-                <div className="grid grid-cols-2 gap-3 pt-6 border-t border-white/5">
-                    <Link href="/ai-tools/roadmap" className="flex items-center justify-between px-4 py-3 bg-blue-600 rounded-2xl text-[9px] font-black text-white uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20 group">
-                        Generate Roadmap <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </Link>
-                    <Link href="/ai-tools/resume-builder" className="flex items-center justify-between px-4 py-3 bg-purple-600 rounded-2xl text-[9px] font-black text-white uppercase tracking-widest hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/20 group">
-                        Create Resume <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </Link>
-                    <Link href="/ai-tools/writing-studio" className="flex items-center justify-between px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all group">
-                        Writing Studio <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </Link>
-                    <Link href="/ai-tools/ai-chat" className="flex items-center justify-between px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all group">
-                        AI Mentorship <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </Link>
                 </div>
             </div>
         </section>

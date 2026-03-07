@@ -40,35 +40,36 @@ export default function ResumeIntelligence({ insights, onUpdateResume }: ResumeI
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {stats.map((stat, i) => (
-                        <div key={i} className="bg-white/5 p-6 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-colors group">
-                            <stat.icon className={`w-6 h-6 ${stat.color} mb-4 group-hover:scale-110 transition-transform`} />
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{stat.label}</p>
-                            <p className="text-xl font-black text-white">{stat.value}</p>
+                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch">
+                    {/* Left: ATS Score Card */}
+                    <div className="w-full lg:w-1/4">
+                        <div className="bg-white/5 p-6 md:p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors group h-full flex flex-col justify-center items-center text-center">
+                            <Target className="w-10 h-10 text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">ATS Score</p>
+                            <p className="text-4xl font-black text-white">{insights.atsScore}/100</p>
                         </div>
-                    ))}
-                </div>
+                    </div>
 
-                {/* Score Breakdown Bars */}
-                <div className="space-y-4">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Deep Breakdown</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                        {Object.entries(scoreBreakdown).map(([key, value], i) => (
-                            <div key={i} className="space-y-2">
-                                <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    <span>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                    <span className="text-white">{value as number}%</span>
+                    {/* Right: Score Breakdown Bars */}
+                    <div className="w-full lg:flex-1 space-y-6">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Deep Breakdown</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                            {Object.entries(scoreBreakdown).map(([key, value], i) => (
+                                <div key={i} className="space-y-3">
+                                    <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                        <span className="text-white">{value as number}%</span>
+                                    </div>
+                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${value}%` }}
+                                            className="h-full bg-gradient-to-r from-blue-600 to-cyan-400"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                    <motion.div
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${value}%` }}
-                                        className="h-full bg-blue-500"
-                                    />
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

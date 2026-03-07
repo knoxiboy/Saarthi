@@ -72,7 +72,8 @@ Ensure the milestones are distributed logically across the whole period.
             { role: "user", content: userPrompt }
         ], {
             model: MODELS.PRIMARY,
-            response_format: { type: "json_object" }
+            response_format: { type: "json_object" },
+            max_tokens: 4096
         });
 
         if (!responseData?.choices?.[0]?.message?.content) {

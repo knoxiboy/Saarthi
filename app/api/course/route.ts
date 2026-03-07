@@ -79,7 +79,8 @@ For each section, provide a "videoSearchQuery" that would yield the best high-qu
       { role: "user", content: userPrompt }
     ], {
       model: MODELS.PRIMARY,
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
+      max_tokens: 4096
     });
 
     if (!responseData?.choices?.[0]?.message?.content) {

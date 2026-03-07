@@ -64,22 +64,30 @@ export async function generateGroqCompletion(
             messages: conversationMessages,
             inferenceConfig: {
                 temperature: options?.temperature ?? 0.7,
-                maxTokens: options?.max_tokens ?? 1024,
+                maxTokens: options?.max_tokens ?? 2048,
             }
-            // Note: Converse API doesn't natively support JSON mode exactly like Groq for all models.
-            // But Haiku & Llama 3 usually respect "Return JSON" in the prompt.
         });
 
         const response = await bedrockClient.send(command);
         let textResult = response.output?.message?.content?.[0]?.text || "";
 
-        // Llama 3 & Bedrock Converse API sometimes wrap JSON in markdown blocks
-        // This strips it seamlessly to prevent JSON.parse crashes
-        if (options?.response_format?.type === "json_object" || textResult.trim().startsWith("```json")) {
-            textResult = textResult.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
+        // Robust JSON extraction: 
+        // 1. Strip Markdown code blocks if they exist
+        // 2. If it still fails, attempt to find the first '{' and last '}'
+        if (options?.response_format?.type === "json_object") {
+            const jsonBlockMatch = textResult.match(/```json\n([\s\S]*?)\n```/) || textResult.match(/```([\s\S]*?)```/);
+            if (jsonBlockMatch) {
+                textResult = jsonBlockMatch[1];
+            } else {
+                const firstBrace = textResult.indexOf('{');
+                const lastBrace = textResult.lastIndexOf('}');
+                if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                    textResult = textResult.substring(firstBrace, lastBrace + 1);
+                }
+            }
         }
 
-        return textResult;
+        return textResult.trim();
     } catch (error: any) {
         console.error("AWS Bedrock API Error Details:", error);
         throw new Error(`Failed to generate response from AWS Bedrock: ${error.message || JSON.stringify(error)}`);

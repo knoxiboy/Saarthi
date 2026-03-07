@@ -109,7 +109,9 @@ export async function POST(req: NextRequest) {
         6. Industry Fit (10%): Readiness for FAANG/High-Growth startups.
 
         STRICT JSON SCHEMA MANDATE:
-        - "suggestions": MUST be a list of 4-6 PUNCHY, ACTIONABLE BULLET POINTS. Use "Action Verb" format (e.g., "Quantify project impact with specific metrics").
+        - "suggestions": MUST be EXACTLY 4 PUNCHY, ACTIONABLE BULLET POINTS. No more, no less. This is critical for UI symmetry.
+        - "experience": "description" field MUST be a single string formatted with clear bullet points if multiple (e.g., "• Achievement 1 • Achievement 2"). DO NOT return a raw JSON array.
+        - "links": Extract all professional links found in the text (GitHub, LinkedIn, Portfolio, etc). If none are found, return an empty array.
         - No conversational filler. No "Here is the data...".
         - If a field is missing, use an empty string or 0, do not use "N/A".
 
@@ -123,7 +125,7 @@ export async function POST(req: NextRequest) {
             "leetcodeCount": number
           },
           "links": [
-            { "platform": "GitHub | LinkedIn | LeetCode | Portfolio", "url": "string" }
+            { "platform": "GitHub | LinkedIn | LeetCode | Portfolio | etc", "url": "string" }
           ],
           "skills": [
             { "category": "Languages | Frontend | Backend | Databases | Cloud | Tools", "skillName": "string" }
@@ -137,7 +139,7 @@ export async function POST(req: NextRequest) {
             }
           ],
           "experience": [
-            { "company": "string", "role": "string", "location": "string", "startDate": "string", "endDate": "string", "description": "Concise bulleted achievements" }
+            { "company": "string", "role": "string", "location": "string", "startDate": "string", "endDate": "string", "description": "Single string with bullet points" }
           ],
           "education": [
             { "institution": "string", "degree": "string", "fieldOfStudy": "string", "cgpa": "string", "startDate": "string", "endDate": "string" }
@@ -166,7 +168,8 @@ export async function POST(req: NextRequest) {
             { role: "user", content: prompt }
         ], {
             response_format: { type: "json_object" },
-            model: MODELS.PRIMARY
+            model: MODELS.PRIMARY,
+            max_tokens: 4096
         });
 
         const extractedData = JSON.parse(response.choices[0].message.content || "{}");
