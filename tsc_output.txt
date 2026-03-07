@@ -1,0 +1,1 @@
+app/ai-tools/resume-builder/ResumeSectionHeader.tsx(7,11): error TS2709: Cannot use namespace 'LucideIcon' as a type.

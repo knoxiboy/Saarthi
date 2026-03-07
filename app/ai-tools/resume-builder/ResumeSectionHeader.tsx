@@ -1,10 +1,10 @@
 "use client"
 
-import { LucideIcon } from "lucide-react"
+import { ElementType } from "react"
 
 interface SectionHeaderProps {
     title: string;
-    icon: LucideIcon;
+    icon: ElementType;
 }
 
 export default function ResumeSectionHeader({ title, icon: Icon }: SectionHeaderProps) {
