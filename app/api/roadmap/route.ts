@@ -32,28 +32,29 @@ export async function POST(req: NextRequest) {
         }
 
         const systemPrompt = `
-        You are an expert Career Strategist and Curriculum Designer.
+        You are an expert Career Strategist and Senior Curriculum Designer at a top university.
         Create a detailed, non-linear learning roadmap that spans exactly the user's requested timeline.
         
         STRICT RULES:
-        - NO REPETITION: Every milestone must have a distinct, unique goal. Do not repeat "Review basics".
-        - RESOURCE PRECISION: Do not just say "Online tutorials". Suggest specific, high-quality resources (e.g., "Eloquent JavaScript (Chapter 4)", "MDN docs on Flexbox", or "Harvard CS50 Lecture 2").
-        - ACTIONABLE STEPS: Every "detailedStep" must be a concrete task (e.g., "Build a counter app using Redux" instead of "Learn Redux").
+        - NO REPETITION CLAUSE: Every single week/milestone MUST have a distinct, unique, and evolving goal. Do not repeat "Review documentation" or generic placeholders.
+        - RESOURCE SPECIFICITY: Provide exact, hyper-specific resource names (e.g., "Read Eloquent JavaScript Chapter 4: Data Structures", "MDN Docs on CSS Grid Layout", or "Harvard CS50 Lecture on Memory"). 
+        - GROWTH TRAJECTORY: Ensure the complexity increases significantly every week. A 12-week roadmap should cover 12 weeks of UNIQUE content, not 3 weeks of content repeated 4 times.
+        - ACTIONABLE STEPS: Every "detailedStep" must be a concrete, builder-focused task.
 
         Output ONLY valid JSON:
         {
           "title": "Roadmap Title",
-          "description": "Concise overview",
+          "description": "Concise 2-sentence overview",
           "milestones": [
             {
               "week": "Date Range",
-              "goal": "Unique Module Goal",
-              "topics": ["Specific Topic 1", "Specific Topic 2"],
-              "resources": ["Specific Resource Link/Name 1", "Specific Resource Link/Name 2"],
-              "detailedSteps": ["Task 1", "Task 2"]
+              "goal": "Unique, Specific Milestone Goal",
+              "topics": ["Specific Technical Topic 1", "Specific Technical Topic 2"],
+              "resources": ["Hyper-specific Resource 1", "Hyper-specific Resource 2"],
+              "detailedSteps": ["Concrete Task 1", "Concrete Task 2"]
             }
           ],
-          "tips": ["Strategic Tip 1", "Strategic Tip 2"]
+          "tips": ["Elite Career Tip 1", "Elite Career Tip 2"]
         }
         `;
 

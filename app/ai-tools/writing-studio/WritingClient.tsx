@@ -220,18 +220,24 @@ export default function WritingClient() {
     const downloadAsWord = async () => {
         if (!output) return
 
-        const doc = new Document({
-            sections: [
-                {
-                    properties: {},
-                    children: output.split("\n").map(line => {
-                        return new Paragraph({
-                            children: [new TextRun(line)],
-                            spacing: { after: 200 }
-                        })
+        const paragraphs = output.split("\n\n").map(block => {
+            const isHeader = block.startsWith("###");
+            const cleanText = block.replace(/^###\s*/, "").replace(/\*\*/g, "");
+
+            return new Paragraph({
+                children: [
+                    new TextRun({
+                        text: cleanText,
+                        bold: isHeader || block.includes("**"),
+                        size: isHeader ? 28 : 24
                     })
-                }
-            ]
+                ],
+                spacing: { before: 200, after: 200 }
+            });
+        });
+
+        const doc = new Document({
+            sections: [{ properties: {}, children: paragraphs }]
         })
 
         const blob = await Packer.toBlob(doc)
@@ -242,18 +248,71 @@ export default function WritingClient() {
     const downloadAsPdf = () => {
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
+
+        const htmlContent = output
+            .replace(/^\s*# (.*$)/gim, '<h1>$1</h1>')
+            .replace(/^\s*## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^\s*### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^\s*#### (.*$)/gim, '<h4>$1</h4>')
+            .replace(/^\s*##### (.*$)/gim, '<h5>$1</h5>')
+            .replace(/^\s*###### (.*$)/gim, '<h6>$1</h6>')
+            .replace(/^\s*---+\s*$/gim, '<hr />')
+            .replace(/^\s*\* (.*$)/gim, '<li>$1</li>')
+            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+            .replace(/\n/gim, '<br />');
+
         printWindow.document.write(`
             <html>
                 <head>
-                    <title>${selectedDoc} Output</title>
-                    <style>body { font-family: sans-serif; padding: 40px; white-space: pre-wrap; }</style>
+                    <title>${selectedDoc}</title>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
+                        body { 
+                            font-family: 'Inter', -apple-system, sans-serif; 
+                            padding: 60px; 
+                            line-height: 1.7; 
+                            color: #1e293b; 
+                            max-width: 850px; 
+                            margin: auto;
+                            background: white;
+                        }
+                        h1, h2, h3, h4, h5, h6 { 
+                            color: #2563eb; 
+                            margin-top: 32px; 
+                            margin-bottom: 12px; 
+                            font-weight: 800; 
+                            line-height: 1.2;
+                        }
+                        h1 { font-size: 2.4rem; border-bottom: 2px solid #eff6ff; padding-bottom: 12px; text-transform: uppercase; }
+                        h2 { font-size: 1.8rem; }
+                        h3 { font-size: 1.5rem; }
+                        h4 { font-size: 1.25rem; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+                        hr { border: none; border-top: 2px solid #f1f5f9; margin: 30px 0; }
+                        strong { color: #0f172a; font-weight: 700; }
+                        li { margin-bottom: 10px; list-style-type: none; position: relative; padding-left: 20px; }
+                        li:before { content: "•"; position: absolute; left: 0; color: #3b82f6; font-weight: bold; }
+                        .content { white-space: normal; }
+                    </style>
                 </head>
-                <body><pre>${output}</pre></body>
+                <body>
+                    <div class="content">${htmlContent}</div>
+                </body>
             </html>
         `);
         printWindow.document.close();
-        printWindow.print();
-        toast.success("Opening Print/PDF Dialog...");
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 700);
+        toast.success("Generating High-Fidelity PDF...");
+    }
+
+    const downloadAsTxt = () => {
+        if (!output) return;
+        const cleanText = output.replace(/[#*]/g, '').replace(/\*\*/g, '');
+        const blob = new Blob([cleanText], { type: 'text/plain;charset=utf-8' });
+        saveAs(blob, `${selectedDoc}_Output.txt`);
+        toast.success("Downloading Plain Text...");
     }
 
     const handleDelete = async (id: number) => {
@@ -304,12 +363,12 @@ export default function WritingClient() {
             <div className="border-b border-white/5 bg-white/1 backdrop-blur-3xl sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto w-full px-8 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-5">
-                        <Link
-                            href="/ai-tools"
+                        <button
+                            onClick={() => setView("hub")}
                             className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all font-black text-xs group"
                         >
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                        </Link>
+                        </button>
                         <div className="space-y-0.5">
                             <h2 className="text-lg font-black uppercase tracking-tighter leading-none">{getSelectedTypeTitle()}</h2>
                             <div className="flex items-center gap-2">
@@ -380,6 +439,7 @@ export default function WritingClient() {
                             onCopy={copyToClipboard}
                             onDownloadWord={downloadAsWord}
                             onDownloadPdf={downloadAsPdf}
+                            onDownloadTxt={downloadAsTxt}
                             onRegenerate={handleGenerate}
                         />
                     </div>

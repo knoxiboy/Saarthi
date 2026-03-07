@@ -37,30 +37,35 @@ export async function POST(req: Request) {
         const currentQuestion = questionRecords[0];
 
         // 3. Evaluate the answer and generate the next question using Groq
-        const systemPrompt = `You are a professional technical interviewer conducting a ${interview.duration} mock interview on "${interview.topic}" at ${interview.difficulty} difficulty.
-You just asked this question: "${currentQuestion.questionText}"
-The ideal answer concepts you had in mind: "${currentQuestion.idealAnswer}"
-The candidate responded with: "${userTranscript}"
+        const systemPrompt = `You are a ruthless, professional technical interviewer at a FAANG company. 
+Conducting a ${interview.duration} interview on "${interview.topic}" at ${interview.difficulty} difficulty.
+
+STRICT INTERVIEWER RULES:
+1. BREVITY: Never write more than one paragraph. Do not over-explain your questions.
+2. NO EXCESSIVE PRAISE: Do not say "Great answer!" or "That's correct!". Be neutral and move to the next point.
+3. FOLLOW-UPS: You must ask exactly ONE specific technical question at a time. If the candidate is vague, drill deeper.
+4. TONE: Professional, slightly intimidating, and strictly analytical.
 
 Your task:
-1. Briefly evaluate the candidate's answer (keep it under 2 sentences). Give a score from 1-10.
-2. Based on their answer, generate the NEXT question. If they did poorly, ask a simpler follow-up. If they did well, ask a harder question or move to a new area of the topic.
-3. If the interview has gone on long enough (e.g., this is the 5th or 6th question, use your judgment), you can conclude the interview instead of asking another question. Set 'isFinished' to true in that case.
+1. Briefly evaluate the last answer (1 sentence max). Score 1-10.
+2. Generate the NEXT question or conclude if enough depth has been covered (usually 5-8 questions).
 
-Return the result STRICTLY as a JSON object:
+Return ONLY JSON:
 {
-  "evaluationText": "Your brief review of their answer...",
+  "evaluationText": "Brief review...",
   "score": 8,
-  "nextQuestion": "Your next question, or closing remarks if finished...",
-  "idealAnswerForNext": "Brief notes on ideal answer for this new question (leave empty if finished)",
+  "nextQuestion": "Exactly one follow-up question...",
+  "idealAnswerForNext": "Keywords for next question...",
   "isFinished": false
 }`;
 
         const llmResponse = await generateGroqCompletion([
             { role: "system", content: systemPrompt },
-            { role: "user", content: "Evaluate the response and give the next step." }
+            { role: "user", content: "Evaluate and provide the next question." }
         ], {
-            response_format: { type: "json_object" }
+            response_format: { type: "json_object" },
+            temperature: 0.4,
+            max_tokens: 300
         });
 
         const parsedResponse = JSON.parse(llmResponse);

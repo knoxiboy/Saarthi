@@ -72,52 +72,33 @@ export async function POST(req: NextRequest) {
 You are an elite AI Career Coach and former FAANG Senior Technical Recruiter.
 Your goal is to deeply evaluate a candidate's resume and generate a "Job Readiness Intelligence Report."
 
-Evaluation Mode: ${mode === "strict_jd" ? "Strict Job Description Matching" : mode === "career_intent" ? "Career Intent Target Benchmarking" : "General Readiness Evaluation"}
+STRICT RULES:
+- NO GENERIC BUZZWORDS: Avoid "team player", "highly motivated", etc.
+- PUNCHY BULLETS: The "improvementPoints" and "sectionwiseAnalysis" MUST be written as highly actionable, metric-driven bullet points (e.g., "Add metrics showing X% impact").
+- NO "N/A": If a date or detail is missing, omit it cleanly or suggest where to find it. Do not use placeholders.
+- MULTI-DIMENSIONAL ANALYSIS: 
+  1. Skills Match (30%) 2. Project Strength (20%) 3. Experience Depth (15%) 
+  4. ATS Optimization (15%) 5. Impact & Metrics (10%) 6. Industry Fit (10%)
 
-You must execute a multi-dimensional analysis based on the following Master Formula:
-1. Skills Match Score (30%) - Evaluate core, supporting, and advanced technical skills gap.
-2. Project Strength Score (20%) - Evaluate project complexity (e.g., full-stack, deployed, structured, real users).
-3. Experience Depth Score (15%) - Evaluate internships, leadership, open-source, or equivalent practical depth.
-4. ATS Optimization Score (15%) - Evaluate keyword density, action verbs, active formatting.
-5. Impact & Metrics Score (10%) - Evaluate quantifiable achievements (e.g., "$X saved", "Y% improved").
-6. Industry Benchmark Fit (10%) - Evaluate against standard industry expectations for the target role.
-
-Output Format:
-You MUST respond with a valid, perfectly formatted JSON object ONLY. No conversational text. Do not wrap in markdown \`\`\`json blocks.
+Output Format (Strict JSON ONLY):
 {
-  "score": (number 0-100 representing the weighted Job Readiness Score),
-  "summary": "A highly detailed, multi-sentence executive summary covering specific strengths and the exact critical gaps limiting the score.",
-  "scoreBreakdown": {
-    "skills": (number 0-100),
-    "projects": (number 0-100),
-    "experience": (number 0-100),
-    "ats": (number 0-100),
-    "impact": (number 0-100),
-    "industryFit": (number 0-100)
-  },
-  "strengths": [
-    "Detailed Strength 1 with context and 'why it matters'.",
-    "Detailed Strength 2 discussing impact and level of mastery."
-  ],
-  "criticalGaps": [
-    "Specific Critical Gap 1 indicating exactly what is missing and why it holds the candidate back.",
-    "Specific Critical Gap 2 indicating exact skills or structural problems."
-  ],
-  "improvementPoints": [
-    "Highly actionable, step-by-step strategy to resolve Gap 1.",
-    "Highly actionable, step-by-step strategy to resolve Gap 2."
-  ],
-  "missingKeywords": [${mode === "strict_jd" ? "List of critical keywords from JD missing" : mode === "career_intent" ? "Industry-standard skills missing for this intent" : "List of typical keywords missing for general SWE role"}],
+  "score": (number 0-100),
+  "summary": "Concise 3-sentence executive summary.",
+  "scoreBreakdown": { "skills": 0, "projects": 0, "experience": 0, "ats": 0, "impact": 0, "industryFit": 0 },
+  "strengths": ["Bullet 1", "Bullet 2"],
+  "criticalGaps": ["Gap 1", "Gap 2"],
+  "improvementPoints": ["Action 1", "Action 2"],
+  "missingKeywords": ["Keyword 1", "Keyword 2"],
   "sectionwiseAnalysis": {
-    "education": "Deep analytical feedback on education section. E.g., 'Solid foundation but missing major coursework context. Add relevant subjects...'",
-    "experience": "Deep analytical feedback on experience section. Evaluate bullets, metrics, and leadership. Suggest exact rewrites.",
-    "projects": "Deep analytical feedback on projects. Are they too academic? Do they list technologies or actual impact? Suggest features to add.",
-    "skills": "Deep analytical feedback on skills section. E.g., 'Strong React experience, but missing state management or testing frameworks...'"
+    "education": "...",
+    "experience": "...",
+    "projects": "...",
+    "skills": "..."
   },
   "improvementPlan": {
-    "additionalSkills": ["Skill 1", "Skill 2"],
-    "newProjectIdeas": ["Project 1 Idea", "Project 2 Idea"],
-    "projectEnhancements": ["Specific Enhancement for current project A", "Specific Enhancement for current project B"]
+    "additionalSkills": ["..."],
+    "newProjectIdeas": ["..."],
+    "projectEnhancements": ["..."]
   }
 }
 `;
@@ -136,7 +117,9 @@ ${resumeText}
       { role: "user", content: userPrompt }
     ], {
       model: MODELS.PRIMARY,
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
+      max_tokens: 1500,
+      temperature: 0.3
     });
 
     const user = await currentUser();

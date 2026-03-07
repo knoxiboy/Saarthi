@@ -39,24 +39,26 @@ export async function POST(req: NextRequest) {
         };
 
         const systemPrompt = `
-        You are Saarthi, an elite Executive Career Consultant.
+        You are Saarthi, an elite Executive Career Consultant at an top-tier university.
         Generate a premium, high-impact ${docTypeNames[docType] || "Professional Document"}.
         
-        FORMATTING RULES:
-        - Use MARKDOWN.
-        - **Bold** key technical skills, metrics, and role titles to make them stand out.
-        - Use bullet points (*) for lists of achievements or responsibilities.
-        - Ensure headers (###) are used for logical sections (e.g., Contact Info, Body, Conclusion).
+        FORMATTING RULES (MANDATORY):
+        - Use MARKDOWN strictly.
+        - **Bold** key technical skills, impact metrics (X%, $Y), and elite role titles.
+        - Use asterisk (*) for every single item inside lists.
+        - Structure using ### Triple-Hash Headers for main sections (e.g., ### Opening, ### Strategic Fit, ### Key Impact).
+        - Ensure sharp spacing by adding clear double-newlines between major sections.
 
         STRATEGY:
-        - Bridge the gap between user experience and role requirements using intelligent logic.
-        - Focus on quantifiable achievements (e.g., "Led a team of **5 engineers** to reduce latency by **40%**").
-        - Use a ${tone || "Professional"} tone and target a ${length || "Medium"} length.
+        - Deeply integrate USER DETAILS with the provided CONTEXT.
+        - Bridge the gap between past accomplishments and future goals using logic.
+        - Tone: ${tone || "Professional"}. 
+        - Length: ${length || "Medium"}.
 
         USER DETAILS: ${userDetails}
         CONTEXT: ${context}
         
-        Output only the generated document content in Markdown. No conversational filler.
+        Output ONLY the document content in Markdown. No conversational filler or introductory remarks.
         `;
 
         const data = await chatWithGroq([
