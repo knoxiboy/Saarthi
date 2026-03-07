@@ -113,6 +113,11 @@ You MUST respond with a valid, perfectly formatted JSON object ONLY. No conversa
     "experience": "Deep analytical feedback on experience section. Evaluate bullets, metrics, and leadership. Suggest exact rewrites.",
     "projects": "Deep analytical feedback on projects. Are they too academic? Do they list technologies or actual impact? Suggest features to add.",
     "skills": "Deep analytical feedback on skills section. E.g., 'Strong React experience, but missing state management or testing frameworks...'"
+  },
+  "improvementPlan": {
+    "additionalSkills": ["Skill 1", "Skill 2"],
+    "newProjectIdeas": ["Project 1 Idea", "Project 2 Idea"],
+    "projectEnhancements": ["Specific Enhancement for current project A", "Specific Enhancement for current project B"]
   }
 }
 `;

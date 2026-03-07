@@ -46,6 +46,11 @@ export interface AnalysisResult {
         projects: string;
         skills: string;
     };
+    improvementPlan?: {
+        additionalSkills: string[];
+        newProjectIdeas: string[];
+        projectEnhancements: string[];
+    };
 }
 
 export interface ResumeAnalysisItem {
@@ -213,6 +218,8 @@ export interface ProfileInsight {
     keywordStrength: string | null;
     projectImpact: string | null;
     suggestions: string | null;
+    sectionAnalysis: string | null;
+    improvementPlan: string | null;
     updatedAt: Date;
 }
 

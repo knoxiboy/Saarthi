@@ -14,6 +14,7 @@ import SkillsAndProjects from "@/components/saarthi-profile/SkillsAndProjects"
 import CareerGoals from "@/components/saarthi-profile/CareerGoals"
 import AIInsights from "@/components/saarthi-profile/AIInsights"
 import CareerJourney from "@/components/saarthi-profile/CareerJourney"
+import DetailedAnalysis from "@/components/saarthi-profile/DetailedAnalysis"
 import { ProfileWithRelations } from "@/types"
 
 interface ProfileClientWrapperProps {
@@ -99,6 +100,7 @@ export default function ProfileClientWrapper({ initialProfile }: ProfileClientWr
                         />
                         <CareerGoals goals={profile.goals} onUpdate={handleUpdate} />
                         <AIInsights insights={profile.insights} metrics={profile.metrics} />
+                        <DetailedAnalysis insights={profile.insights} />
                     </div>
                 </motion.div>
             )}

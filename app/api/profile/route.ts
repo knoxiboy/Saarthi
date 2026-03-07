@@ -158,7 +158,18 @@ export async function POST(req: NextRequest) {
                 "skillsCoverage": number,
                 "experience": number
             },
-            "suggestions": ["Bullet 1", "Bullet 2", "Bullet 3"]
+            "suggestions": ["Bullet 1", "Bullet 2", "Bullet 3", "Bullet 4"],
+            "sectionAnalysis": {
+                "experience": "What is good/bad and how to improve experience impact",
+                "projects": "Assessment of project technical depth and relevance",
+                "skills": "Skill gap analysis relative to software engineering market",
+                "education": "How to leverage academic details for job roles"
+            },
+            "improvementPlan": {
+                "additionalSkills": ["Skill 1", "Skill 2"],
+                "newProjectIdeas": ["Project 1 Idea", "Project 2 Idea"],
+                "projectEnhancements": ["Enhancement for Project X", "Enhancement for Project Y"]
+            }
           }
         }
         `;
@@ -312,6 +323,8 @@ export async function POST(req: NextRequest) {
                     projectImpact: insights.projectImpact || "Weak",
                     breakdown: JSON.stringify(insights.breakdown || {}),
                     suggestions: JSON.stringify(insights.suggestions || []),
+                    sectionAnalysis: JSON.stringify(insights.sectionAnalysis || {}),
+                    improvementPlan: JSON.stringify(insights.improvementPlan || {}),
                 })
                 .onConflictDoUpdate({
                     target: [profileInsightsTable.userEmail],
@@ -322,6 +335,8 @@ export async function POST(req: NextRequest) {
                         projectImpact: insights.projectImpact || "Weak",
                         breakdown: JSON.stringify(insights.breakdown || {}),
                         suggestions: JSON.stringify(insights.suggestions || []),
+                        sectionAnalysis: JSON.stringify(insights.sectionAnalysis || {}),
+                        improvementPlan: JSON.stringify(insights.improvementPlan || {}),
                         updatedAt: new Date()
                     }
                 });

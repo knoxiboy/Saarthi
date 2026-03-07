@@ -99,7 +99,9 @@ export async function getFullUserProfile(userEmail: string) {
             skillsCoverage: 0,
             experience: 0
         }),
-        suggestions: "[]"
+        suggestions: "[]",
+        sectionAnalysis: "{}",
+        improvementPlan: "{}"
     };
 
     if (latestAnalysis) {

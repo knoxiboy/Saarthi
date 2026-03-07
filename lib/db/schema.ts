@@ -181,6 +181,8 @@ export const profileInsightsTable = pgTable("profile_insights", {
     keywordStrength: varchar({ length: 20 }), // Low, Medium, Strong
     projectImpact: varchar({ length: 20 }), // Weak, Medium, Strong
     suggestions: text(), // JSON string for AI suggestions
+    sectionAnalysis: text(), // JSON string for detailed section analysis
+    improvementPlan: text(), // JSON string for improvement plan
     updatedAt: timestamp().defaultNow().notNull(),
 });
 

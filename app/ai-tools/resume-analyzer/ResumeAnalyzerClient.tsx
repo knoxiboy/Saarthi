@@ -289,6 +289,28 @@ Platform: ${extractedData.platform}
         })
         currentY = (doc as any).lastAutoTable.finalY + 15
 
+        if (result.improvementPlan) {
+            doc.setFontSize(16)
+            doc.setTextColor(0, 0, 0)
+            doc.text("Strategic Growth Blueprint", 20, currentY)
+            currentY += 10
+
+            autoTable(doc, {
+                startY: currentY,
+                head: [['Category', 'Recommendations']],
+                body: [
+                    ['Target Skills', result.improvementPlan.additionalSkills.join(", ")],
+                    ['Build Next (Project Ideas)', result.improvementPlan.newProjectIdeas.join("\n\n")],
+                    ['Enhance Current Projects', result.improvementPlan.projectEnhancements.join("\n\n")]
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [59, 130, 246] },
+                margin: { left: 20, right: 20 },
+                styles: { fontSize: 9, cellPadding: 5 }
+            })
+            currentY = (doc as any).lastAutoTable.finalY + 15
+        }
+
         doc.setFontSize(16)
         doc.setTextColor(0, 0, 0)
         doc.text("Keywords to Add", 20, currentY)
