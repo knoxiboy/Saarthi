@@ -62,6 +62,35 @@ export async function POST(req: NextRequest) {
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
+
+        // --- AWS S3 Integration for Durable Artifact Storage ---
+        try {
+            const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+            const s3 = new S3Client({
+                region: process.env.AWS_REGION || "us-east-1",
+                credentials: {
+                    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+                    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+                }
+            });
+            const s3Key = `resumes/${userEmail}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+            await s3.send(new PutObjectCommand({
+                Bucket: process.env.AWS_S3_BUCKET_NAME || "saarthi-resumes-bucket",
+                Key: s3Key,
+                Body: buffer,
+                ContentType: file.type || "application/pdf",
+                Metadata: {
+                    uploadedBy: userEmail,
+                }
+            }));
+            console.log(`[AWS S3] Successfully archived resume to ${s3Key}`);
+        } catch (s3Error) {
+            console.error("[AWS S3 Warning] Failed to upload resume to S3, but continuing analysis:", s3Error);
+            // We don't want to break the pipeline if S3 isn't cleanly configured yet, 
+            // but deploying with S3 increases the AWS native service footprint
+        }
+        // --------------------------------------------------------
+
         const pdfData = await pdf(buffer);
         const resumeText = pdfData.text;
 

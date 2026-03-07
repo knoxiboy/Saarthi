@@ -195,9 +195,9 @@ export default function HistoryClient({ initialData }: HistoryClientProps) {
                 {/* AI Advisor Chats */}
                 <TabsContent value="chats" className="space-y-4 focus-visible:outline-none focus-visible:ring-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filterBySearch(chats).map((item) => (
+                        {filterBySearch(chats).map((item, index) => (
                             <HistoryCard
-                                key={item.chatId}
+                                key={`${item.chatId}-${index}`}
                                 icon={<MessageSquare className="w-5 h-5 text-purple-400" />}
                                 title={item.chatTitle}
                                 date={new Date(item.createdAt).toLocaleDateString()}
@@ -386,7 +386,7 @@ function HistoryCard({
             </div>
 
             <div className="space-y-4">
-                <h3 className="font-black text-white text-lg tracking-tight line-clamp-2 min-h-[3.5rem] group-hover:text-blue-400 transition-colors">
+                <h3 className="font-black text-white text-lg tracking-tight line-clamp-2 min-h-14 group-hover:text-blue-400 transition-colors">
                     {title}
                 </h3>
 
@@ -420,8 +420,8 @@ function EmptyState({
     action?: { label: string, href: string }
 }) {
     return (
-        <div className="flex flex-col items-center justify-center p-12 bg-white/[0.02] border border-dashed border-white/10 rounded-[2.5rem] text-center">
-            <div className="p-6 bg-white/[0.03] rounded-full mb-6">
+        <div className="flex flex-col items-center justify-center p-12 bg-white/2 border border-dashed border-white/10 rounded-[2.5rem] text-center">
+            <div className="p-6 bg-white/3 rounded-full mb-6">
                 {icon}
             </div>
             <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tight">{title}</h3>
