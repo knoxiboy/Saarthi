@@ -257,3 +257,23 @@ export interface ProfileWithRelations extends UserProfile {
     goals?: CareerGoal | null;
     insights?: ProfileInsight | null;
 }
+// History & Other Types
+export interface UserCourse {
+    id: number;
+    userEmail: string;
+    title: string;
+    description: string;
+    targetField: string | null;
+    roadmapData: any;
+    createdAt: Date;
+}
+
+export interface WritingDoc {
+    id: number;
+    userEmail: string;
+    docType: string;
+    context: string;
+    generatedContent: string;
+    userDetails: string | null;
+    createdAt: Date;
+}

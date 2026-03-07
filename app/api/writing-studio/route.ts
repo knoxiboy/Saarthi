@@ -90,10 +90,12 @@ Output only the generated document content. No conversational filler.
             doc: savedDoc
         });
 
-    } catch (error: any) {
-        console.error("Writing Studio Error:", error.response?.data || error.message);
+    } catch (error: unknown) {
+        console.error("Writing Studio Error:", error);
+        const err = error as { message?: string; response?: { data?: any } };
         return NextResponse.json({
-            error: error.response?.data?.error?.message || error.message || "Failed to generate document"
+            error: err.message || "Failed to generate document",
+            details: err.response?.data || err.message
         }, { status: 500 });
     }
 }

@@ -119,7 +119,7 @@ Tone: Professional, strategic, calm, intelligent.
                 try {
                     const buffer = Buffer.from(fileBase64, "base64");
                     // Safety check for pdfParse
-                    const pdfParse = typeof pdf === 'function' ? pdf : (pdf as any).default || pdf;
+                    const pdfParse = typeof pdf === 'function' ? pdf : (pdf as unknown as { default: any }).default || pdf;
                     const data = await pdfParse(buffer);
                     appendedText = `\n\n--- [Attached PDF Document: ${fileName || "Document.pdf"}] ---\n${data.text}\n---`;
                 } catch (pdfError: unknown) {
@@ -149,8 +149,12 @@ Tone: Professional, strategic, calm, intelligent.
                 } else if (Array.isArray(msg.content)) {
                     // Extract text parts from multi-modal content for history stability
                     textContent = msg.content
-                        .filter((part) => part.type === "text")
-                        .map((part) => part.text)
+                        .map((part) => {
+                            if (typeof part === 'string') return part;
+                            if (part && typeof part === 'object' && 'text' in part) return part.text;
+                            return '';
+                        })
+                        .filter(Boolean)
                         .join("\n");
                 } else {
                     textContent = String(msg.content || "");
@@ -185,7 +189,13 @@ Tone: Professional, strategic, calm, intelligent.
 
     } catch (error: unknown) {
         // chatWithGroq already logs errors, but we catch them for the HTTP response
-        const err = error as { response?: { status?: number; data?: { error?: { message?: string } } }; message?: string };
+        const err = error as {
+            response?: {
+                status?: number;
+                data?: { error?: { message?: string } }
+            };
+            message?: string
+        };
         const status = err.response?.status || 500;
         const groqError = err.response?.data?.error?.message;
 

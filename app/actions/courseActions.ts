@@ -21,9 +21,9 @@ import crypto from "crypto";
 /**
  * Limit concurrency for async tasks
  */
-async function promiseLimit<T>(items: T[], limit: number, iteratorFn: (item: T) => Promise<any>) {
-    const ret: Promise<any>[] = [];
-    const executing: Promise<any>[] = [];
+async function promiseLimit<T, R>(items: T[], limit: number, iteratorFn: (item: T) => Promise<R>): Promise<R[]> {
+    const ret: Promise<R>[] = [];
+    const executing: Promise<any>[] = []; // This 'any' is acceptable for tracking the promise itself
     for (const item of items) {
         const p = Promise.resolve().then(() => iteratorFn(item));
         ret.push(p);
@@ -121,9 +121,9 @@ export async function createCourseAction(
 
         return { success: true, courseId };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[COURSE_ACTION] Error in createCourseAction:", error);
-        return { success: false, error: error.message };
+        return { success: false, error: error instanceof Error ? error.message : "An unknown error occurred" };
     }
 }
 
@@ -186,10 +186,10 @@ export async function generateCourseContentAction(courseId: number) {
         await db.update(coursesTable).set({ generationStatus: "completed" }).where(eq(coursesTable.id, courseId));
         return { success: true };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[COURSE_ACTION] Background Generation Error:", error);
         await db.update(coursesTable).set({ generationStatus: "failed" }).where(eq(coursesTable.id, courseId));
-        return { success: false, error: error.message };
+        return { success: false, error: error instanceof Error ? error.message : "An unknown error occurred" };
     }
 }
 

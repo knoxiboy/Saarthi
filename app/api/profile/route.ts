@@ -38,9 +38,10 @@ export async function GET(req: NextRequest) {
         const profileData = await getFullUserProfile(userEmail);
         return NextResponse.json(profileData);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Profile Fetch Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
@@ -215,7 +216,7 @@ export async function POST(req: NextRequest) {
             await tx.delete(professionalLinksTable).where(eq(professionalLinksTable.userEmail, userEmail));
             if (links.length > 0) {
                 await tx.insert(professionalLinksTable).values(
-                    links.map((l: any) => ({ userEmail, ...l }))
+                    links.map((l: { platform: string; url: string }) => ({ userEmail, ...l }))
                 );
             }
 
@@ -223,7 +224,7 @@ export async function POST(req: NextRequest) {
             await tx.delete(userSkillsTable).where(eq(userSkillsTable.userEmail, userEmail));
             if (skills.length > 0) {
                 await tx.insert(userSkillsTable).values(
-                    skills.map((s: any) => ({ userEmail, ...s }))
+                    skills.map((s: { category: string; skillName: string }) => ({ userEmail, ...s }))
                 );
             }
 
@@ -231,7 +232,7 @@ export async function POST(req: NextRequest) {
             await tx.delete(userProjectsTable).where(eq(userProjectsTable.userEmail, userEmail));
             if (projects.length > 0) {
                 await tx.insert(userProjectsTable).values(
-                    projects.map((p: any) => ({
+                    projects.map((p: { title: string; techStack: string; description: string; links: any }) => ({
                         userEmail,
                         title: p.title || "Untitled Project",
                         techStack: p.techStack || "",
@@ -245,7 +246,7 @@ export async function POST(req: NextRequest) {
             await tx.delete(userExperienceTable).where(eq(userExperienceTable.userEmail, userEmail));
             if (experience.length > 0) {
                 await tx.insert(userExperienceTable).values(
-                    experience.map((e: any) => ({ userEmail, ...e }))
+                    experience.map((e: { company: string; role: string; location?: string; startDate?: string; endDate?: string; description?: string }) => ({ userEmail, ...e }))
                 );
             }
 
@@ -253,7 +254,7 @@ export async function POST(req: NextRequest) {
             await tx.delete(userEducationTable).where(eq(userEducationTable.userEmail, userEmail));
             if (education.length > 0) {
                 await tx.insert(userEducationTable).values(
-                    education.map((e: any) => ({ userEmail, ...e }))
+                    education.map((e: { institution: string; degree: string; fieldOfStudy?: string; cgpa?: string; startDate?: string; endDate?: string; description?: string }) => ({ userEmail, ...e }))
                 );
             }
 
@@ -309,9 +310,10 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, data: finalProfile });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Profile Extraction Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
 
@@ -347,7 +349,7 @@ export async function PATCH(req: NextRequest) {
                 await db.transaction(async (tx) => {
                     await tx.delete(professionalLinksTable).where(eq(professionalLinksTable.userEmail, userEmail));
                     if (data.length > 0) {
-                        const cleanData = data.map(({ id, ...rest }: any) => ({ userEmail, ...rest }));
+                        const cleanData = data.map(({ id, ...rest }: { id?: number; platform: string; url: string }) => ({ userEmail, ...rest }));
                         await tx.insert(professionalLinksTable).values(cleanData);
                     }
                 });
@@ -356,7 +358,7 @@ export async function PATCH(req: NextRequest) {
                 await db.transaction(async (tx) => {
                     await tx.delete(userSkillsTable).where(eq(userSkillsTable.userEmail, userEmail));
                     if (data.length > 0) {
-                        const cleanData = data.map(({ id, ...rest }: any) => ({ userEmail, ...rest }));
+                        const cleanData = data.map(({ id, ...rest }: { id?: number; category: string; skillName: string }) => ({ userEmail, ...rest }));
                         await tx.insert(userSkillsTable).values(cleanData);
                     }
                 });
@@ -365,7 +367,7 @@ export async function PATCH(req: NextRequest) {
                 await db.transaction(async (tx) => {
                     await tx.delete(userProjectsTable).where(eq(userProjectsTable.userEmail, userEmail));
                     if (data.length > 0) {
-                        const cleanData = data.map(({ id, ...p }: any) => ({
+                        const cleanData = data.map(({ id, ...p }: { id?: number; title?: string; techStack?: string; description?: string; links?: any }) => ({
                             userEmail,
                             title: p.title || "Untitled Project",
                             techStack: p.techStack || "",
@@ -380,7 +382,7 @@ export async function PATCH(req: NextRequest) {
                 await db.transaction(async (tx) => {
                     await tx.delete(userExperienceTable).where(eq(userExperienceTable.userEmail, userEmail));
                     if (data.length > 0) {
-                        const cleanData = data.map(({ id, ...rest }: any) => ({ userEmail, ...rest }));
+                        const cleanData = data.map(({ id, ...rest }: { id?: number; company: string; role: string; location?: string; startDate?: string; endDate?: string; description?: string }) => ({ userEmail, ...rest }));
                         await tx.insert(userExperienceTable).values(cleanData);
                     }
                 });
@@ -389,7 +391,7 @@ export async function PATCH(req: NextRequest) {
                 await db.transaction(async (tx) => {
                     await tx.delete(userEducationTable).where(eq(userEducationTable.userEmail, userEmail));
                     if (data.length > 0) {
-                        const cleanData = data.map(({ id, ...rest }: any) => ({ userEmail, ...rest }));
+                        const cleanData = data.map(({ id, ...rest }: { id?: number; institution: string; degree?: string; fieldOfStudy?: string; cgpa?: string; startDate?: string; endDate?: string; description?: string }) => ({ userEmail, ...rest }));
                         await tx.insert(userEducationTable).values(cleanData);
                     }
                 });
@@ -398,7 +400,7 @@ export async function PATCH(req: NextRequest) {
                 await db.transaction(async (tx) => {
                     await tx.delete(userAchievementsTable).where(eq(userAchievementsTable.userEmail, userEmail));
                     if (data.length > 0) {
-                        const cleanData = data.map(({ id, ...rest }: any) => ({ userEmail, ...rest }));
+                        const cleanData = data.map(({ id, ...rest }: { id?: number; title: string; description?: string }) => ({ userEmail, ...rest }));
                         await tx.insert(userAchievementsTable).values(cleanData);
                     }
                 });
@@ -415,7 +417,8 @@ export async function PATCH(req: NextRequest) {
         }
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
