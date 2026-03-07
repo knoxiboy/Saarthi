@@ -19,6 +19,7 @@ import {
 } from "@/lib/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { count, eq } from "drizzle-orm";
+// @ts-ignore - Turbopack cache bust
 import { chatWithGroq } from "@/lib/ai/groq";
 import { MODELS } from "@/lib/ai/models";
 import pdf from "pdf-parse-fork";

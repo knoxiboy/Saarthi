@@ -1,0 +1,9 @@
+﻿app/api/ai-career-chat-agent/route.tsx(4,10): error TS2305: Module '"@/lib/ai/groq"' has no exported member 'chatWithGroq'.
+app/api/course/route.ts(2,10): error TS2305: Module '"@/lib/ai/groq"' has no exported member 'chatWithGroq'.
+app/api/cover-letter/route.ts(2,10): error TS2305: Module '"@/lib/ai/groq"' has no exported member 'chatWithGroq'.
+app/api/profile/route.ts(22,10): error TS2305: Module '"@/lib/ai/groq"' has no exported member 'chatWithGroq'.
+app/api/resume-analyzer/route.ts(2,10): error TS2305: Module '"@/lib/ai/groq"' has no exported member 'chatWithGroq'.
+app/api/roadmap/route.ts(2,10): error TS2305: Module '"@/lib/ai/groq"' has no exported member 'chatWithGroq'.
+app/api/writing-studio/route.ts(2,10): error TS2305: Module '"@/lib/ai/groq"' has no exported member 'chatWithGroq'.
+lib/ai/assistant-utils.ts(2,10): error TS2305: Module '"./groq"' has no exported member 'chatWithGroq'.
+lib/ai/bedrock.ts(1,10): error TS2305: Module '"./groq"' has no exported member 'chatWithGroq'.

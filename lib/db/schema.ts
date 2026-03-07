@@ -300,3 +300,41 @@ export const courseProgressRelations = relations(courseProgressTable, ({ one }) 
         references: [courseLessonsTable.id],
     }),
 }));
+
+// AI Mock Interview Tables
+export const mockInterviewsTable = pgTable("mock_interviews", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userEmail: varchar({ length: 255 }).notNull(),
+    type: varchar({ length: 50 }).notNull(), // 'Resume-Based', 'Custom'
+    topic: varchar({ length: 255 }).notNull(),
+    duration: varchar({ length: 50 }).notNull(), // e.g., '15 min', '30 min'
+    difficulty: varchar({ length: 50 }).notNull(), // 'Easy', 'Medium', 'Hard'
+    status: varchar({ length: 50 }).default('In-Progress').notNull(), // 'In-Progress', 'Completed'
+    overallScore: integer(),
+    metrics: text(), // JSON string for { technicalKnowledge: 8, communication: 7, etc. }
+    generalFeedback: text(), // JSON string for { strengths: [], weaknesses: [], suggestions: [] }
+    createdAt: timestamp().defaultNow().notNull(),
+});
+
+export const interviewQuestionsTable = pgTable("interview_questions", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    interviewId: integer().references(() => mockInterviewsTable.id, { onDelete: 'cascade' }),
+    questionText: text().notNull(),
+    idealAnswer: text(),
+    userTranscript: text(),
+    aiEvaluationText: text(),
+    score: integer(),
+    sequenceOrder: integer().notNull(),
+});
+
+// Mock Interview Relations
+export const mockInterviewsRelations = relations(mockInterviewsTable, ({ many }) => ({
+    questions: many(interviewQuestionsTable),
+}));
+
+export const interviewQuestionsRelations = relations(interviewQuestionsTable, ({ one }) => ({
+    interview: one(mockInterviewsTable, {
+        fields: [interviewQuestionsTable.interviewId],
+        references: [mockInterviewsTable.id],
+    }),
+}));

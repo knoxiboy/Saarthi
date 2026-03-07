@@ -14,7 +14,8 @@ import {
     User,
     Menu,
     X,
-    LogOut
+    LogOut,
+    Mic
 } from 'lucide-react'
 import {
     AlertDialog,
@@ -30,6 +31,7 @@ import {
 const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { name: 'Features', icon: Wrench, href: '/ai-tools' },
+    { name: 'AI Mock Interview', icon: Mic, href: '/ai-tools/mock-interview' },
     { name: 'My History', icon: History, href: '/history' },
     { name: 'Profile', icon: User, href: '/dashboard/profile' },
 ]

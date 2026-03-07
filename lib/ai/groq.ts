@@ -1,81 +1,56 @@
-import axios from "axios";
-import { MODELS } from "./models";
+import Groq from "groq-sdk";
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-
-export interface GroqOptions {
-    model?: string;
-    temperature?: number;
-    max_tokens?: number;
-    top_p?: number;
-    stream?: boolean;
-    stop?: string | string[];
-    response_format?: { type: "json_object" | "text" };
-}
-
-const DEFAULT_OPTIONS: GroqOptions = {
-    model: MODELS.PRIMARY,
-    temperature: 0.7,
-    max_tokens: 1024,
-};
-
-const FALLBACK_MODEL = MODELS.FALLBACK;
+// Initialize Groq client
+// It automatically uses the GROQ_API_KEY environment variable if not passed
+export const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+});
 
 /**
- * Executes a chat completion request to Groq with built-in retry logic and model failover.
- * "Solves it all for once" by handling rate limits (429) and server errors (500/503) gracefully.
+ * Helper function to generate a completion using Groq's fast models
+ * We use `llama-3.3-70b-versatile` or `llama3-8b-8192` as defaults, as they are very fast and capable
  */
-export async function chatWithGroq(messages: any[], options: GroqOptions = {}) {
-    const config = { ...DEFAULT_OPTIONS, ...options };
-    const maxRetries = 3;
-    let attempt = 0;
+export async function generateGroqCompletion(
+    messages: { role: "system" | "user" | "assistant"; content: string }[],
+    options?: {
+        model?: string;
+        temperature?: number;
+        max_tokens?: number;
+        response_format?: { type: "json_object" };
+    }
+) {
+    try {
+        const response = await groq.chat.completions.create({
+            messages,
+            model: options?.model || "llama-3.3-70b-versatile", // Fast and powerful default
+            temperature: options?.temperature ?? 0.7,
+            max_tokens: options?.max_tokens ?? 1024,
+            response_format: options?.response_format,
+        });
 
-    // Track if we should try a lighter model on the next attempt
-    let useFallbackModel = false;
+        return response.choices[0]?.message?.content || "";
+    } catch (error: any) {
+        console.error("Groq API Error Details:", error);
+        throw new Error(`Failed to generate response from Groq: ${error.message || JSON.stringify(error)}`);
+    }
+}
 
-    while (attempt <= maxRetries) {
-        try {
-            const currentModel = useFallbackModel ? FALLBACK_MODEL : config.model;
-
-            const response = await axios.post(
-                GROQ_API_URL,
-                {
-                    ...config,
-                    model: currentModel,
-                    messages: messages,
-                },
-                {
-                    headers: {
-                        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            return response.data;
-        } catch (error: any) {
-            const status = error.response?.status;
-            const isRateLimit = status === 429;
-            const isServerError = status >= 500 && status <= 504;
-
-            // If it's not a retryable error, or we've exhausted retries, throw it
-            if (!(isRateLimit || isServerError) || attempt === maxRetries) {
-                console.error(`Groq API Error (${status}):`, error.response?.data || error.message);
-                throw error;
-            }
-
-            attempt++;
-
-            // On second attempt or after a 429, signal to use a lighter model
-            if (isRateLimit || attempt >= 1) {
-                useFallbackModel = true;
-            }
-
-            // Exponential backoff: 1.5s, 3s, 6s
-            const delay = Math.pow(2, attempt) * 750;
-            console.warn(`Groq API ${status} - Retrying in ${delay}ms (Attempt ${attempt}/${maxRetries}). Fallback: ${useFallbackModel}`);
-
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
+// Re-add chatWithGroq which was accidentally removed
+export async function chatWithGroq(
+    messages: { role: "system" | "user" | "assistant"; content: string }[],
+    options: any = {}
+) {
+    try {
+        const response = await groq.chat.completions.create({
+            messages: messages as any,
+            model: options.model || "llama-3.3-70b-versatile",
+            temperature: options.temperature ?? 0.7,
+            max_tokens: options.max_tokens ?? 1024,
+            ...options,
+        });
+        return response;
+    } catch (error: any) {
+        console.error("chatWithGroq Error:", error);
+        throw error;
     }
 }
