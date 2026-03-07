@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { useDropzone } from "react-dropzone"
 import { Upload, FileText, Send, ArrowUp, ShieldCheck, Briefcase, History, Trash2, Target, Zap, ArrowLeft, Loader2, Globe } from "lucide-react"
 import { motion } from "framer-motion"
@@ -46,6 +47,22 @@ export default function ResumeAnalyzerClient() {
     const [view, setView] = useState<"generator" | "history">("generator")
     const [history, setHistory] = useState<ResumeAnalysisItem[]>([])
     const [fetchingHistory, setFetchingHistory] = useState(false)
+    const searchParams = useSearchParams()
+    const selectedId = searchParams.get("id")
+
+    // Sync URL ID with selection
+    useEffect(() => {
+        if (selectedId && history.length > 0) {
+            const found = history.find(h => String(h.id) === selectedId)
+            if (found) {
+                const analysisDataValue = typeof (found as any).analysisData === 'string'
+                    ? JSON.parse((found as any).analysisData)
+                    : (found as any).analysisData;
+                setResult(analysisDataValue)
+                setView("history")
+            }
+        }
+    }, [selectedId, history])
 
     const fetchProfile = useCallback(async () => {
         try {
@@ -348,7 +365,7 @@ Platform: ${extractedData.platform}
                             AI Powered Analysis
                         </div>
                         <h1 className="text-4xl font-black text-white tracking-tight mb-4 uppercase">
-                            Job Readiness <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Analyzer</span>
+                            Job Readiness <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500">Analyzer</span>
                         </h1>
                         <p className="text-lg text-slate-400 leading-relaxed max-w-2xl font-medium">
                             Upload your resume and paste the job description to get a deeper analysis of your compatibility and actionable improvement points.
@@ -405,7 +422,7 @@ Platform: ${extractedData.platform}
                                 {history.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="group relative text-left bg-white/5 border border-white/10 rounded-[2rem] p-8 shadow-sm hover:shadow-[0_0_50px_rgba(37,99,235,0.1)] hover:border-white/20 transition-all duration-500 overflow-hidden backdrop-blur-xl"
+                                        className="group relative text-left bg-white/5 border border-white/10 rounded-4xl p-8 shadow-sm hover:shadow-2xl hover:border-white/20 transition-all duration-500 overflow-hidden backdrop-blur-xl"
                                     >
                                         <div
                                             className="absolute inset-0 z-0 cursor-pointer"
@@ -434,7 +451,7 @@ Platform: ${extractedData.platform}
                                                                     <Trash2 className="w-4 h-4" />
                                                                 </div>
                                                             </AlertDialogTrigger>
-                                                            <AlertDialogContent className="rounded-[2rem] bg-slate-900 border-white/10 text-white">
+                                                            <AlertDialogContent className="rounded-4xl bg-slate-900 border-white/10 text-white">
                                                                 <AlertDialogHeader>
                                                                     <AlertDialogTitle>Delete this analysis?</AlertDialogTitle>
                                                                     <AlertDialogDescription className="text-slate-400">
@@ -553,7 +570,7 @@ Platform: ${extractedData.platform}
                                         : "bg-white border-white text-slate-900 hover:bg-slate-50 hover:shadow-xl hover:shadow-black/5"
                                         }`}
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover/profile-btn:translate-x-full transition-transform duration-1000" />
+                                    <div className="absolute inset-0 bg-linear-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full group-hover/profile-btn:translate-x-full transition-transform duration-1000" />
                                     <ArrowUp className={`w-4 h-4 ${useProfileResume ? 'text-white' : 'text-slate-900'} group-hover/profile-btn:-translate-y-1 transition-transform`} />
                                     <div className="flex flex-col items-start gap-0">
                                         <span className="leading-tight">{useProfileResume ? "Profile Resume Selected" : "Use Profile Resume"}</span>
@@ -591,11 +608,11 @@ Platform: ${extractedData.platform}
                         </div>
 
                         {/* Right Side: Inputs */}
-                        <div className="bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col h-full border border-white/10 relative overflow-hidden group/card shadow-[0_0_50px_rgba(37,99,235,0.05)]">
+                        <div className="bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col h-full border border-white/10 relative overflow-hidden group/card">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl -mr-16 -mt-16 rounded-full group-hover/card:bg-blue-500/20 transition-all duration-700" />
                             <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/5 blur-3xl -ml-16 -mb-16 rounded-full group-hover/card:bg-purple-500/10 transition-all duration-700" />
 
-                            <div className="relative z-10 flex p-1.5 bg-white/5 rounded-[1.5rem] border border-white/10 mb-8 backdrop-blur-md">
+                            <div className="relative z-10 flex p-1.5 bg-white/5 rounded-3xl border border-white/10 mb-8 backdrop-blur-md">
                                 <button
                                     onClick={() => setUseSpecificJD(true)}
                                     className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${useSpecificJD
@@ -672,7 +689,7 @@ Platform: ${extractedData.platform}
                                                 value={jobDescription}
                                                 onChange={(e) => setJobDescription(e.target.value)}
                                                 placeholder="Paste the target role description here to get a specific ATS match score..."
-                                                className="flex-1 min-h-[200px] bg-white/5 border border-white/10 rounded-[1.5rem] p-6 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all resize-none mb-0 text-sm font-medium leading-relaxed backdrop-blur-sm"
+                                                className="flex-1 min-h-[200px] bg-white/5 border border-white/10 rounded-3xl p-6 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all resize-none mb-0 text-sm font-medium leading-relaxed backdrop-blur-sm"
                                             />
                                         )}
                                     </>
@@ -703,9 +720,9 @@ Platform: ${extractedData.platform}
                             <button
                                 onClick={handleAnalyze}
                                 disabled={loading || (!file && !useProfileResume)}
-                                className="relative z-10 w-full py-5 bg-white text-black rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_20px_40px_rgba(255,255,255,0.05)] group/btn overflow-hidden mt-6"
+                                className="relative z-10 w-full py-5 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xl group/btn overflow-hidden mt-6"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
+                                <div className="absolute inset-0 bg-linear-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
                                 {loading || isExtracting ? (
                                     <>
                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -729,6 +746,6 @@ Platform: ${extractedData.platform}
                     />
                 )}
             </div>
-        </div>
+        </div >
     );
 }

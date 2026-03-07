@@ -68,30 +68,46 @@ async function callGroqPremium(model: string, systemPrompt: string, userPrompt: 
  */
 export async function generateCourseOutline(topic: string, level: string, duration: string, goalType: string) {
     console.log(">>> [DEBUG] generateCourseOutline START <<<", { topic, level, duration, goalType });
+
+    // Logic to determine course scale based on duration
+    let moduleCount = "6-8";
+    if (duration.toLowerCase().includes("month")) {
+        const months = parseInt(duration) || 1;
+        if (months >= 3) moduleCount = "12-15";
+        else if (months >= 2) moduleCount = "10-12";
+        else moduleCount = "8-10";
+    }
+
     const systemPrompt = `You are a Senior Industry Educator and FAANG-Level Technical Instructor.
-    You design advanced, structured, progressive courses that prepare learners for real-world job roles and technical interviews.
+    Your task is to design an elite, structured, and highly detailed curriculum inspired by world-class learning platforms like GeeksforGeeks, W3Schools, and MDN.
+    
+    GUIDELINES:
+    1. PROGRESSION: Ensure a "Zero to Hero" flow.
+    2. DEPTH: Do not skip complex sub-topics. Break them into modular lessons.
+    3. STRUCTURE: Every lesson title must be descriptive and professional.
+    4. REPUTATION: Aim for the clarity of W3Schools and the depth of GeeksforGeeks.
+    
     Return ONLY a strict JSON object. No markdown, no filler.`;
 
     const userPrompt = `Generate a comprehensive ${duration} course on "${topic}" for ${level} learners.
-    Constraints:
-    - Max 6 modules.
-    - Each module must contain 4-5 lessons.
-    - Each lesson must build logically from previous ones.
-    - Include a final capstone project.
-    - Course must focus on ${goalType}.
-    - Emphasize practical depth.
-
-    Required JSON Format:
+    
+    CONSTRAINTS:
+    - MODULES: Use exactly ${moduleCount} modules to cover the ${duration} duration effectively.
+    - LESSONS: Each module MUST have 5-6 high-quality lessons.
+    - GOAL: Focus exclusively on ${goalType}.
+    - HIERARCHY: Organize modules by logical progression (Basics -> Core -> Advanced -> Real-world -> Testing -> Deployment).
+    
+    Required JSON Format (ensure ALL fields are valid JSON and properly closed):
     {
       "courseTitle": "...",
-      "description": "...",
-      "learningOutcomes": ["...", "..."],
-      "capstoneProject": "...",
+      "description": "A detailed 150-word overview of the journey.",
+      "learningOutcomes": ["Outcome 1", "Outcome 2", "Outcome 3", "Outcome 4", "Outcome 5"],
+      "capstoneProject": "A detailed description of a production-ready project.",
       "modules": [
         {
-          "title": "...",
-          "description": "...",
-          "lessons": [{"title": "...", "focus": "..."}]
+          "title": "Module Title",
+          "description": "What will be mastered here",
+          "lessons": [{"title": "Lesson Title", "focus": "Deep sub-topics to cover in this lesson"}]
         }
       ]
     }`;
@@ -111,7 +127,7 @@ export async function generateCourseOutline(topic: string, level: string, durati
         const validated = CourseOutlineSchema.safeParse(parsed);
         if (!validated.success) {
             console.error("[BEDROCK] Schema Validation Failed:", validated.error.format());
-            throw new Error("AI response did not match the expected course structure");
+            throw new Error("AI response did not match the expected course structure. Likely too many modules for a single response.");
         }
 
         return validated.data;
@@ -126,34 +142,45 @@ export async function generateCourseOutline(topic: string, level: string, durati
  */
 export async function generateLessonContent(lessonTitle: string, focus: string, level: string, goalType: string) {
     const wordLimits: Record<string, string> = {
-        "Beginner": "400-600",
-        "Intermediate": "600-800",
-        "Advanced": "800-1200"
+        "Beginner": "800-1000",
+        "Intermediate": "1000-1500",
+        "Advanced": "1500-2000"
     };
-    const limit = wordLimits[level] || "600-800";
+    const limit = wordLimits[level] || "1000-1200";
 
-    const systemPrompt = `You are a Senior Industry Educator.
-    Generate a highly detailed, industry-aligned lesson.
-    Follow these rules:
-    1. Depth: Aim for ${limit} words in the explanation.
-    2. Format: Return strict JSON only.
-    3. Interview focus: Include real-world gaps and recruiter-style questions.`;
+    const systemPrompt = `You are a Technical Content Architect.
+    Generate a textbook-quality, highly organized lesson.
+    
+    INSPIRATION SOURCES:
+    - GeeksforGeeks (for technical depth and interview perspective)
+    - W3Schools (for clarity, structured points, and bite-sized logic)
+    - MDN Web Docs (for absolute accuracy)
+
+    FORMATTING RULES:
+    1. Structure: Use H3/H4 equivalents in text for organization.
+    2. Lists: Use bullet points for key features and characteristics.
+    3. Syntax: Provide detailed syntax breakdowns.
+    4. Practicality: Explain WHY something is used, not just HOW.
+    
+    Return strict JSON only.`;
 
     const userPrompt = `Generate lesson content for:
     Topic: "${lessonTitle}"
-    Focus Area: ${focus}
+    Context/Focus: ${focus}
     Level: ${level}
     Goal: ${goalType}
 
+    The explanation must be extremely detailed (approx ${limit} words) and follow a structured "Point-by-Point" format like GeeksforGeeks. Use multiple headings, comparative tables (if relevant), and deep-dive sections.
+    
     Include:
-    - explanation (Min ${limit.split('-')[0]} words)
-    - realWorldExample (Concrete industry scenario)
-    - codeExample (Clean, professional code if applicable)
-    - commonMistakes (List of things professionals get wrong)
-    - exercise (Actionable task)
-    - interviewQuestions (5-8 high-quality Q&A)
+    - explanation (Structured with clear headings, detailed paragraphs, and comparative tables/lists. Aim for maximum technical depth.)
+    - realWorldExample (A massive, detailed case study)
+    - codeExample (A fully commented, production-ready implementation)
+    - commonMistakes (At least 5-7 subtle pitfalls pros face)
+    - exercise (A challenging mini-project task)
+    - interviewQuestions (10 highly relevant, scenario-based Q&A)
 
-    JSON Format:
+    JSON Format (strictly follow this and ensure the response is a complete, valid JSON object):
     {
       "explanation": "...",
       "realWorldExample": "...",
@@ -225,11 +252,19 @@ export async function generateQuiz(content: string) {
 export async function rankYouTubeVideos(videos: any[], level: string) {
     if (!videos || videos.length === 0) return null;
 
-    const systemPrompt = `Select the most structured, high-quality educational tutorial best suited for ${level} learners. 
+    const systemPrompt = `Select the most structured, educational, and relevant technical tutorial best suited for ${level} learners. 
+    Avoid clickbait or superficial overviews. Prioritize full course lectures or detailed deep-dives.
     Return ONLY the videoId as a string. No other text.`;
 
-    const userPrompt = `Rank these videos for a ${level} learner and return the best one:
-    ${videos.map((v, i) => `${i + 1}. Title: ${v.title} | Channel: ${v.channelTitle} | ID: ${v.videoId}`).join("\n")}`;
+    const userPrompt = `Rank these YouTube videos based on:
+    1. Title relevance to the technical topic: "${level} level mastery"
+    2. Educational quality (Professional channels preferred)
+    3. Duration/Depth
+    
+    Candidates:
+    ${videos.map((v, i) => `${i + 1}. Title: ${v.title} | Channel: ${v.channelTitle} | ID: ${v.videoId}`).join("\n")}
+    
+    Return the best videoId:`;
 
     try {
         const videoId = await callGroqPremium(MODELS.RANKING, systemPrompt, userPrompt, false);

@@ -143,8 +143,8 @@ export async function generateCourseContentAction(courseId: number) {
 
         const allLessons = course.modules.flatMap(m => m.lessons);
 
-        // Parallel generation with limit of 3
-        await promiseLimit(allLessons, 3, async (lesson) => {
+        // Parallel generation with limit of 6 for better speed without hitting rate limits too hard
+        await promiseLimit(allLessons, 6, async (lesson) => {
             try {
                 // 1. Generate Deep Content (800+ words if advanced)
                 const content = await generateLessonContent(

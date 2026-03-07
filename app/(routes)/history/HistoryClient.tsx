@@ -229,7 +229,7 @@ export default function HistoryClient({ initialData }: HistoryClientProps) {
                                 icon={<BookOpen className="w-5 h-5 text-emerald-400" />}
                                 title={item.title}
                                 date={new Date(item.createdAt).toLocaleDateString()}
-                                href={`/ai-tools/roadmap/${item.id}`}
+                                href={`/ai-tools/course?id=${item.id}`}
                                 onDelete={() => handleDeleteCourse(item.id)}
                                 deleteTitle="Delete Course"
                                 deleteDescription="This will permanently delete this generated course."
@@ -313,7 +313,7 @@ export default function HistoryClient({ initialData }: HistoryClientProps) {
                                 icon={<FileText className="w-5 h-5 text-pink-400" />}
                                 title={item.title}
                                 date={new Date(item.createdAt).toLocaleDateString()}
-                                href={`/ai-tools/writing-studio?id=${item.id}`}
+                                href={`/ai-tools/writing-studio?id=${item.id}&docType=${item.docType}`}
                                 onDelete={() => handleDeleteWritingDoc(item.id)}
                                 deleteTitle="Delete Document"
                                 deleteDescription="This will permanently delete this generated document."

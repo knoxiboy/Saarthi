@@ -14,6 +14,11 @@ export async function POST(req: Request) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
+        if (!process.env.GROQ_API_KEY) {
+            console.error("[STT_ERROR] GROQ_API_KEY is missing");
+            return new NextResponse("API Configuration Error", { status: 500 });
+        }
+
         const formData = await req.formData();
         const audioFile = formData.get("file") as File;
 
@@ -21,36 +26,39 @@ export async function POST(req: Request) {
             return new NextResponse("No audio file provided", { status: 400 });
         }
 
-        // Convert the incoming file blob to a buffer
         const arrayBuffer = await audioFile.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        // Write to a temporary file, as most Node SDKs (like OpenAI/Groq) expect a physical file stream for Whisper
         const tempDir = os.tmpdir();
         const tempFilePath = path.join(tempDir, `audio-${Date.now()}.webm`);
         fs.writeFileSync(tempFilePath, buffer);
 
         try {
-            // Groq Whisper-large-v3 model
             const transcription = await groq.audio.transcriptions.create({
                 file: fs.createReadStream(tempFilePath),
-                model: "whisper-large-v3", // Using their flagship STT model
-                language: "en",           // Force english to avoid hallucinations / translation drift
+                model: "whisper-large-v3",
+                language: "en",
             });
 
             return NextResponse.json({
                 text: transcription.text,
             });
 
+        } catch (groqError: any) {
+            console.error("[STT_GROQ_ERROR]", groqError.message || groqError);
+            return new NextResponse(groqError.message || "Groq Transcription Failed", { status: 500 });
         } finally {
-            // Securely clean up the temp file after transcription
             if (fs.existsSync(tempFilePath)) {
-                fs.unlinkSync(tempFilePath);
+                try {
+                    fs.unlinkSync(tempFilePath);
+                } catch (e) {
+                    console.error("Failed to delete temp file:", e);
+                }
             }
         }
 
-    } catch (error) {
-        console.error("[MOCK_INTERVIEW_STT]", error);
-        return new NextResponse("Internal Server Error", { status: 500 });
+    } catch (error: any) {
+        console.error("[STT_INTERNAL_ERROR]", error.message || error);
+        return new NextResponse(error.message || "Internal Server Error", { status: 500 });
     }
 }

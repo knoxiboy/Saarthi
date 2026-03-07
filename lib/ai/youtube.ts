@@ -11,8 +11,8 @@ export async function searchYoutubeVideos(lessonTitle: string, topic: string, le
         return [];
     }
 
-    // Build smart query as requested
-    const query = `${lessonTitle} ${topic} full tutorial ${level}`;
+    // Build smart query for high-quality educational content
+    const query = `${lessonTitle} ${topic} ${level} masterclass university lecture documentation`;
 
     try {
         const response = await youtube.search.list({

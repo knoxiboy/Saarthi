@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import {
     Map,
     Sparkles,
@@ -47,6 +47,19 @@ export default function RoadmapClient({ initialHistory }: RoadmapClientProps) {
     const [generatingCourse, setGeneratingCourse] = useState(false)
 
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const selectedId = searchParams.get("id")
+
+    // Sync URL ID with selection
+    useEffect(() => {
+        if (selectedId && history.length > 0) {
+            const found = history.find(h => String(h.id) === selectedId)
+            if (found) {
+                setRoadmap(found)
+                setView("history")
+            }
+        }
+    }, [selectedId, history])
 
     const fetchHistory = useCallback(async () => {
         setFetchingHistory(true)
@@ -149,13 +162,13 @@ export default function RoadmapClient({ initialHistory }: RoadmapClientProps) {
             <div className="flex gap-4 mb-10 bg-white/5 backdrop-blur-xl p-1.5 rounded-2xl w-fit border border-white/10 shadow-2xl self-start md:self-end">
                 <button
                     onClick={() => { setView("generator"); setRoadmap(null); }}
-                    className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === "generator" && !roadmap ? "bg-white text-black shadow-lg" : "text-slate-400 hover:text-white"}`}
+                    className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === "generator" ? "bg-white text-black shadow-lg" : "text-slate-400 hover:text-white"}`}
                 >
                     New Roadmap
                 </button>
                 <button
                     onClick={() => { setView("history"); setRoadmap(null); }}
-                    className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === "history" && !roadmap ? "bg-white text-black shadow-lg" : "text-slate-400 hover:text-white"}`}
+                    className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${view === "history" ? "bg-white text-black shadow-lg" : "text-slate-400 hover:text-white"}`}
                 >
                     History
                 </button>

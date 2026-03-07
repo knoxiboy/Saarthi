@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { Plus, Send, History, X, MessageSquare, Copy, Check, Trash2, Sparkles, Loader2, Share2, Globe, Link as LinkIcon, ArrowLeft, Paperclip } from "lucide-react"
 import axios from "axios";
 import Link from "next/link";
@@ -55,6 +56,15 @@ export default function CareerChatClient() {
     const [sharingLoading, setSharingLoading] = useState(false)
     const [historyLoading, setHistoryLoading] = useState(false)
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
+    const searchParams = useSearchParams()
+    const urlChatId = searchParams.get("chatId")
+
+    // Sync URL Chat ID with session
+    useEffect(() => {
+        if (urlChatId && urlChatId !== currentChatId) {
+            loadChatSession(urlChatId)
+        }
+    }, [urlChatId])
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -339,7 +349,7 @@ export default function CareerChatClient() {
                                     <DialogContent className="rounded-[2.5rem] sm:max-w-[540px] w-[95vw] p-8 sm:p-14 border-white/10 shadow-2xl bg-slate-900/90 backdrop-blur-2xl text-white flex flex-col gap-0 overflow-hidden">
                                         <DialogHeader className="text-left mb-10 w-full">
                                             <DialogTitle className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight uppercase text-left">
-                                                Share this <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 italic">Conversation</span>
+                                                Share this <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500 italic">Conversation</span>
                                             </DialogTitle>
                                             <DialogDescription className="text-slate-400 text-base sm:text-lg font-medium leading-relaxed mt-4 text-left">
                                                 Make this conversation public to generate a unique shareable link for others to view.
@@ -347,9 +357,9 @@ export default function CareerChatClient() {
                                         </DialogHeader>
 
                                         <div className="flex flex-col gap-8 w-full">
-                                            <div className={`w-full flex items-center justify-between p-6 sm:p-8 rounded-[2rem] border transition-all duration-500 ${isShared ? 'bg-white/5 border-white/20 shadow-[0_0_50px_rgba(37,99,235,0.2)]' : 'bg-white/5 border-white/10'}`}>
+                                            <div className={`w-full flex items-center justify-between p-6 sm:p-8 rounded-4xl border transition-all duration-500 ${isShared ? 'bg-white/5 border-white/20 shadow-[0_0_50px_rgba(37,99,235,0.2)]' : 'bg-white/5 border-white/10'}`}>
                                                 <div className="flex items-center gap-6 min-w-0 pr-2">
-                                                    <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all duration-500 flex-shrink-0 ${isShared ? 'bg-blue-600 text-white shadow-lg' : 'bg-white/10 text-slate-500'}`}>
+                                                    <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all duration-500 shrink-0 ${isShared ? 'bg-blue-600 text-white shadow-lg' : 'bg-white/10 text-slate-500'}`}>
                                                         <Globe className={`w-6 h-6 sm:w-8 sm:h-8 ${isShared ? 'animate-pulse' : ''}`} />
                                                     </div>
                                                     <div className="min-w-0 flex flex-col">

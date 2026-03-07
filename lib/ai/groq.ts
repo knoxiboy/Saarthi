@@ -64,7 +64,7 @@ export async function generateGroqCompletion(
             messages: conversationMessages,
             inferenceConfig: {
                 temperature: options?.temperature ?? 0.7,
-                maxTokens: options?.max_tokens ?? 2048,
+                maxTokens: options?.max_tokens ?? 4096,
             }
         });
 

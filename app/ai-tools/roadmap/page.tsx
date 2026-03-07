@@ -1,12 +1,10 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { db } from "@/lib/db/db";
-import { roadmapsTable } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
 import RoadmapClient from "./RoadmapClient";
 import { redirect } from "next/navigation";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
+import { getRoadmapHistoryAction } from "@/app/actions/roadmapActions";
 
 export const metadata: Metadata = {
     title: "AI Learning Roadmap | Saarthi",
@@ -21,18 +19,19 @@ export default async function RoadmapPage() {
         redirect("/sign-in");
     }
 
-    // Fetch history for the client component
-    const rawHistory = await db.select()
-        .from(roadmapsTable)
-        .where(eq(roadmapsTable.userEmail, userEmail))
-        .orderBy(desc(roadmapsTable.createdAt));
-
-    const initialHistory = rawHistory.map(item => ({
-        ...(item.roadmapData as any),
+    // Fetch history using the server action
+    const historyRes = await getRoadmapHistoryAction();
+    // Flatten the nested roadmapData for the client component
+    const initialHistory = (historyRes.success && historyRes.data) ? historyRes.data.map((item: any) => ({
+        ...item.roadmapData,
         id: item.id,
-        createdAt: item.createdAt?.toISOString(),
+        createdAt: item.createdAt instanceof Date ? item.createdAt.toISOString() : item.createdAt,
         targetField: item.targetField
-    }));
+    })) : [];
+
+    if (!historyRes.success) {
+        console.error("ROADMAP_PAGE_HISTORY_ERROR:", historyRes.error);
+    }
 
     return (
         <div className="min-h-screen bg-slate-950">
@@ -57,7 +56,7 @@ export default async function RoadmapPage() {
                 </div>
             </div>
 
-            <RoadmapClient initialHistory={initialHistory} />
+            <RoadmapClient initialHistory={initialHistory as any} />
         </div>
     );
 }
