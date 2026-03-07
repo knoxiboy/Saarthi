@@ -1,4 +1,0 @@
-app/ai-tools/writing-studio/WritingClient.tsx(160,28): error TS2352: Conversion of type '{ id: number; userEmail: string; docType: string; context: string; userDetails: string; generatedContent: string; createdAt: Date; }[]' to type 'DocumentItem[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-  Type '{ id: number; userEmail: string; docType: string; context: string; userDetails: string; generatedContent: string; createdAt: Date; }' is not comparable to type 'DocumentItem'.
-    Types of property 'createdAt' are incompatible.
-      Type 'Date' is not comparable to type 'string'.
