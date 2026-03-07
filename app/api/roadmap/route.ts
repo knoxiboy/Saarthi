@@ -32,30 +32,30 @@ export async function POST(req: NextRequest) {
         }
 
         const systemPrompt = `
-You are an expert Career Coach and Curriculum Designer. 
-Your task is to generate a highly structured, actionable, and personalized learning roadmap based on the user's goals.
+        You are an expert Career Strategist and Curriculum Designer.
+        Create a detailed, non-linear learning roadmap that spans exactly the user's requested timeline.
+        
+        STRICT RULES:
+        - NO REPETITION: Every milestone must have a distinct, unique goal. Do not repeat "Review basics".
+        - RESOURCE PRECISION: Do not just say "Online tutorials". Suggest specific, high-quality resources (e.g., "Eloquent JavaScript (Chapter 4)", "MDN docs on Flexbox", or "Harvard CS50 Lecture 2").
+        - ACTIONABLE STEPS: Every "detailedStep" must be a concrete task (e.g., "Build a counter app using Redux" instead of "Learn Redux").
 
-CRITICAL REQUIREMENT:
-The roadmap MUST strictly cover the entire duration specified in the TIMELINE provided by the user. 
-Do NOT shorten or truncate the plan. If the user asks for 12 months, provide milestones spanning 12 months.
-
-Output Format:
-You MUST respond with a valid JSON object ONLY. No conversational text.
-{
-  "title": "Roadmap Title",
-  "description": "Brief overview of the roadmap spanning the requested timeline.",
-  "milestones": [
-    {
-      "week": "Date Range (e.g. Week 1-2, Month 3, Year 1)",
-      "goal": "Milestone Goal",
-      "topics": ["Topic 1", "Topic 2"],
-      "resources": ["Resource suggestion 1", "Resource suggestion 2"],
-      "detailedSteps": ["Step 1: Focus on X", "Step 2: Practice Y", "Step 3: Build Z"]
-    }
-  ],
-  "tips": ["Tip 1", "Tip 2"]
-}
-`;
+        Output ONLY valid JSON:
+        {
+          "title": "Roadmap Title",
+          "description": "Concise overview",
+          "milestones": [
+            {
+              "week": "Date Range",
+              "goal": "Unique Module Goal",
+              "topics": ["Specific Topic 1", "Specific Topic 2"],
+              "resources": ["Specific Resource Link/Name 1", "Specific Resource Link/Name 2"],
+              "detailedSteps": ["Task 1", "Task 2"]
+            }
+          ],
+          "tips": ["Strategic Tip 1", "Strategic Tip 2"]
+        }
+        `;
 
         const userPrompt = `
 TARGET FIELD: ${targetField}

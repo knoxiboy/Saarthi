@@ -95,20 +95,24 @@ export async function POST(req: NextRequest) {
         const resumeText = pdfData.text;
 
         const prompt = `
-        You are an elite AI Career Coach and Talent Analyzer. Extract structured data from the following resume text for a Saarthi Profile and perform a deep "Job Readiness" analysis.
+        You are an elite AI Career Coach and Talent Analyzer. Your goal is to extract structured data from the following resume text and provide a high-stakes "Job Readiness" evaluation.
         
         Resume Text:
         ${resumeText}
 
-        Evaluation Master Formula (Weighted for Role Baseline):
-        1. Skills Match Score (30%) - Core technical skills vs industry standard.
-        2. Project Strength Score (20%) - Complexity and deployment status.
-        3. Experience Depth Score (15%) - Impact and leadership metrics.
-        4. ATS Optimization Score (15%) - Keywords and formatting effectiveness.
-        5. Impact & Metrics Score (10%) - Quantifiable achievements.
-        6. Industry Fit Score (10%) - General readiness for high-growth tech roles.
+        STRICT EVALUATION CRITERIA:
+        1. Skills Match (30%): Depth in role-required languages/frameworks.
+        2. Projects (20%): Complexity, live links, and business/technical impact.
+        3. Experience (15%): Quantifiable achievements (e.g., "Increased X by Y%").
+        4. ATS Optimization (15%): Multi-column compatibility, keywords, and structural clarity.
+        5. Impact Metrics (10%): Use of numbers and scales.
+        6. Industry Fit (10%): Readiness for FAANG/High-Growth startups.
 
-        Respond ONLY with a JSON object in this format:
+        STRICT JSON SCHEMA MANDATE:
+        - "suggestions": MUST be a list of 4-6 PUNCHY, ACTIONABLE BULLET POINTS. Use "Action Verb" format (e.g., "Quantify project impact with specific metrics").
+        - No conversational filler. No "Here is the data...".
+        - If a field is missing, use an empty string or 0, do not use "N/A".
+
         {
           "profile": {
             "name": "string",
@@ -119,7 +123,7 @@ export async function POST(req: NextRequest) {
             "leetcodeCount": number
           },
           "links": [
-            { "platform": "GitHub | LinkedIn | LeetCode | Portfolio | Blog | Kaggle | Codeforces", "url": "string" }
+            { "platform": "GitHub | LinkedIn | LeetCode | Portfolio", "url": "string" }
           ],
           "skills": [
             { "category": "Languages | Frontend | Backend | Databases | Cloud | Tools", "skillName": "string" }
@@ -128,31 +132,31 @@ export async function POST(req: NextRequest) {
             {
               "title": "string",
               "techStack": "string",
-              "description": "string",
-              "links": { "github": "string", "live": "string", "demo": "string", "docs": "string" }
+              "description": "Short, impact-focused description",
+              "links": { "github": "string", "live": "string" }
             }
           ],
           "experience": [
-            { "company": "string", "role": "string", "location": "string", "startDate": "string", "endDate": "string", "description": "string" }
+            { "company": "string", "role": "string", "location": "string", "startDate": "string", "endDate": "string", "description": "Concise bulleted achievements" }
           ],
           "education": [
-            { "institution": "string (name of school/college/univ)", "degree": "string", "fieldOfStudy": "string", "cgpa": "string", "startDate": "string", "endDate": "string", "description": "string" }
+            { "institution": "string", "degree": "string", "fieldOfStudy": "string", "cgpa": "string", "startDate": "string", "endDate": "string" }
           ],
           "achievements": [
             { "title": "string", "description": "string" }
           ],
           "insights": {
-            "jobReadinessScore": number (0-100),
-            "atsScore": number (0-100),
+            "jobReadinessScore": number,
+            "atsScore": number,
             "keywordStrength": "Low | Medium | Strong",
             "projectImpact": "Weak | Medium | Strong",
             "breakdown": {
-                "resumeQuality": number (0-100),
-                "projectsStrength": number (0-100),
-                "skillsCoverage": number (0-100),
-                "experience": number (0-100)
+                "resumeQuality": number,
+                "projectsStrength": number,
+                "skillsCoverage": number,
+                "experience": number
             },
-            "suggestions": ["highly actionable suggestion 1", "highly actionable suggestion 2"]
+            "suggestions": ["Bullet 1", "Bullet 2", "Bullet 3"]
           }
         }
         `;

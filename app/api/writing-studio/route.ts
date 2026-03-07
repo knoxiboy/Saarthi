@@ -39,27 +39,25 @@ export async function POST(req: NextRequest) {
         };
 
         const systemPrompt = `
-You are Saarthi, an expert Career Strategy Specialist.
-Your goal is to generate a premium, high-impact ${docTypeNames[docType] || "Professional Document"}.
+        You are Saarthi, an elite Executive Career Consultant.
+        Generate a premium, high-impact ${docTypeNames[docType] || "Professional Document"}.
+        
+        FORMATTING RULES:
+        - Use MARKDOWN.
+        - **Bold** key technical skills, metrics, and role titles to make them stand out.
+        - Use bullet points (*) for lists of achievements or responsibilities.
+        - Ensure headers (###) are used for logical sections (e.g., Contact Info, Body, Conclusion).
 
-DOCUMENT TYPE: ${docTypeNames[docType]}
-TONE: ${tone || "Professional"}
-LENGTH: ${length || "Medium"}
+        STRATEGY:
+        - Bridge the gap between user experience and role requirements using intelligent logic.
+        - Focus on quantifiable achievements (e.g., "Led a team of **5 engineers** to reduce latency by **40%**").
+        - Use a ${tone || "Professional"} tone and target a ${length || "Medium"} length.
 
-GUIDELINES:
-- Use intelligent analysis to bridge the gap between user experience and role requirements.
-- Maintain a highly professional, opportunity-winning standard.
-- Do not use placeholders (like "[Name]"); instead, write compelling content that the user can refine.
-- Focus on quantifiable achievements and measurable impact.
-
-USER CONTEXT:
-${context}
-
-USER EXPERIENCE/SKILLS:
-${userDetails}
-
-Output only the generated document content. No conversational filler.
-`;
+        USER DETAILS: ${userDetails}
+        CONTEXT: ${context}
+        
+        Output only the generated document content in Markdown. No conversational filler.
+        `;
 
         const data = await chatWithGroq([
             { role: "system", content: systemPrompt },
