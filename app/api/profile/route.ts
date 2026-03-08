@@ -20,7 +20,7 @@ import {
 import { currentUser } from "@clerk/nextjs/server";
 import { count, eq } from "drizzle-orm";
 // @ts-ignore - Turbopack cache bust
-import { chatWithGroq } from "@/lib/ai/groq";
+import { analyzeWithGroqLPU } from "@/lib/ai/groq";
 import { MODELS } from "@/lib/ai/models";
 import pdf from "pdf-parse-fork";
 import { ProfileWithRelations } from "@/types";
@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
         6. Industry Fit (10%): Readiness for FAANG/High-Growth startups.
 
         STRICT JSON SCHEMA MANDATE:
+        - ALL SCORES MUST BE OUT OF 100 (e.g. 85, not 8.5). "jobReadinessScore", "atsScore", and ALL "breakdown" values MUST be percentages between 0 and 100.
         - "suggestions": MUST be EXACTLY 4 PUNCHY, ACTIONABLE BULLET POINTS. No more, no less. This is critical for UI symmetry.
         - "experience": "description" field MUST be a single string formatted with clear bullet points if multiple (e.g., "• Achievement 1 • Achievement 2"). DO NOT return a raw JSON array.
         - "links": Extract all professional links found in the text (GitHub, LinkedIn, Portfolio, etc). If none are found, return an empty array.
@@ -148,15 +149,15 @@ export async function POST(req: NextRequest) {
             { "title": "string", "description": "string" }
           ],
           "insights": {
-            "jobReadinessScore": number,
-            "atsScore": number,
+            "jobReadinessScore": "number (0-100)",
+            "atsScore": "number (0-100)",
             "keywordStrength": "Low | Medium | Strong",
             "projectImpact": "Weak | Medium | Strong",
             "breakdown": {
-                "resumeQuality": number,
-                "projectsStrength": number,
-                "skillsCoverage": number,
-                "experience": number
+                "resumeQuality": "number (0-100)",
+                "projectsStrength": "number (0-100)",
+                "skillsCoverage": "number (0-100)",
+                "experience": "number (0-100)"
             },
             "suggestions": ["Bullet 1", "Bullet 2", "Bullet 3", "Bullet 4"],
             "sectionAnalysis": {
@@ -174,12 +175,12 @@ export async function POST(req: NextRequest) {
         }
         `;
 
-        const response = await chatWithGroq([
+        const response = await analyzeWithGroqLPU([
             { role: "system", content: "You are a professional resume parser." },
             { role: "user", content: prompt }
         ], {
             response_format: { type: "json_object" },
-            model: MODELS.PRIMARY,
+            model: MODELS.GROQ_PRIMARY,
             max_tokens: 4096
         });
 

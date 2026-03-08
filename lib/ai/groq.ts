@@ -119,3 +119,35 @@ export async function chatWithGroq(
         throw error;
     }
 }
+
+/**
+ * Native Groq Client completion function.
+ * Use this for high speed parsing without AWS rate limit constraints.
+ */
+export async function analyzeWithGroqLPU(
+    messages: { role: "system" | "user" | "assistant"; content: string }[],
+    options: any = {}
+) {
+    try {
+        const response = await groq.chat.completions.create({
+            messages: messages as any,
+            model: options.model || "llama-3.3-70b-versatile",
+            temperature: options.temperature ?? 0.3,
+            max_tokens: options.max_tokens ?? 4096,
+            response_format: options.response_format,
+        });
+
+        return {
+            choices: [
+                {
+                    message: {
+                        content: response.choices[0]?.message?.content || ""
+                    }
+                }
+            ]
+        };
+    } catch (error: any) {
+        console.error("Native Groq API Error:", error);
+        throw error;
+    }
+}

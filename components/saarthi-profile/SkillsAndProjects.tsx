@@ -292,16 +292,18 @@ export default function SkillsAndProjects({ skills = [], projects = [], onUpdate
                     </AlertDialog>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="flex flex-col gap-3">
                     {Object.entries(groupedSkills).map(([category, items]: any, i) => (
-                        <div key={i} className="space-y-4">
-                            <h3 className="text-xs font-black text-white uppercase tracking-widest border-l-2 border-blue-500 pl-3">
-                                {category}
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
+                        <div key={i} className="flex flex-wrap md:flex-nowrap items-baseline gap-3 md:gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                            <div className="md:w-1/4 shrink-0 flex items-center gap-2">
+                                <div className="w-1 h-3 bg-blue-500 rounded-full" />
+                                <span className="font-black text-white uppercase tracking-widest text-xs">{category}</span>
+                            </div>
+                            <div className="hidden md:block text-white/20 font-light">—</div>
+                            <div className="flex flex-wrap items-center gap-1.5 text-sm md:flex-1">
                                 {items.map((skill: string, j: number) => (
-                                    <span key={j} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
-                                        {skill}
+                                    <span key={j} className="text-slate-300 font-medium">
+                                        {skill}{j < items.length - 1 ? <span className="text-slate-600 mr-1.5">,</span> : ""}
                                     </span>
                                 ))}
                             </div>
@@ -311,14 +313,14 @@ export default function SkillsAndProjects({ skills = [], projects = [], onUpdate
             </div>
 
             {/* Projects Section */}
-            <div className="space-y-6">
-                <div className="flex items-center justify-between px-6">
+            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-3xl shadow-2xl space-y-8">
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center">
                             <FolderKanban className="w-6 h-6 text-purple-400" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-0.5">Featured Engineering</h2>
+                            <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-0.5">Projects</h2>
                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Your showcased projects</p>
                         </div>
                     </div>
@@ -486,7 +488,7 @@ export default function SkillsAndProjects({ skills = [], projects = [], onUpdate
                             <motion.div
                                 key={i}
                                 whileHover={{ y: -5 }}
-                                className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-3xl shadow-2xl group flex flex-col h-full overflow-hidden relative"
+                                className="bg-white/5 border border-white/5 rounded-2xl p-6 group flex flex-col h-full overflow-hidden relative"
                             >
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-3xl -mr-16 -mt-16 rounded-full group-hover:bg-purple-500/10 transition-colors" />
 

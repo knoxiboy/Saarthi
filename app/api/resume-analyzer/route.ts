@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chatWithGroq } from "@/lib/ai/groq";
+import { analyzeWithGroqLPU } from "@/lib/ai/groq";
 import { MODELS } from "@/lib/ai/models";
 // Use pdf-parse-fork which is more stable in Next.js environments
 import pdf from "pdf-parse-fork";
@@ -79,12 +79,13 @@ STRICT RULES:
 - MULTI-DIMENSIONAL ANALYSIS: 
   1. Skills Match (30%) 2. Project Strength (20%) 3. Experience Depth (15%) 
   4. ATS Optimization (15%) 5. Impact & Metrics (10%) 6. Industry Fit (10%)
+- ALL SCORES MUST BE OUT OF 100. "score" and ALL "scoreBreakdown" values MUST be percentages between 0 and 100.
 
 Output Format (Strict JSON ONLY):
 {
-  "score": (number 0-100),
+  "score": "number (0-100)",
   "summary": "Concise 3-sentence executive summary.",
-  "scoreBreakdown": { "skills": 0, "projects": 0, "experience": 0, "ats": 0, "impact": 0, "industryFit": 0 },
+  "scoreBreakdown": { "skills": "number (0-100)", "projects": "number (0-100)", "experience": "number (0-100)", "ats": "number (0-100)", "impact": "number (0-100)", "industryFit": "number (0-100)" },
   "strengths": ["Bullet 1", "Bullet 2"],
   "criticalGaps": ["Gap 1", "Gap 2"],
   "improvementPoints": ["Action 1", "Action 2"],
@@ -112,11 +113,11 @@ RESUME TEXT:
 ${resumeText}
 `;
 
-    const responseData = await chatWithGroq([
+    const responseData = await analyzeWithGroqLPU([
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
     ], {
-      model: MODELS.PRIMARY,
+      model: MODELS.GROQ_PRIMARY,
       response_format: { type: "json_object" },
       max_tokens: 1500,
       temperature: 0.3
