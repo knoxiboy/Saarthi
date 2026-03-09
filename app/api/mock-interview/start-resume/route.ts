@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db/db";
-import { mockInterviewsTable, interviewQuestionsTable, resumeAnalysisTable } from "@/lib/db/schema";
+import { mockInterviewsTable, interviewQuestionsTable, resumeAnalysisTable, userProfilesTable } from "@/lib/db/schema";
 import { generateGroqCompletion } from "@/lib/ai/groq";
 import { eq, desc } from "drizzle-orm";
 
@@ -14,15 +14,68 @@ export async function POST(req: Request) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
-        // Fetch User's Latest Analyzed Resume
+        // 1. Fetch User's Latest Analyzed Resume (PDF upload)
         const [latestResume] = await db.select()
             .from(resumeAnalysisTable)
             .where(eq(resumeAnalysisTable.userEmail, userEmail))
             .orderBy(desc(resumeAnalysisTable.createdAt))
             .limit(1);
 
-        if (!latestResume || !latestResume.resumeText) {
-            return new NextResponse("No resume found. Please upload one in your profile first.", { status: 400 });
+        let resumeText = latestResume?.resumeText;
+
+        // 2. Fallback to User Profile (Manual Career details)
+        if (!resumeText) {
+            const profile = await db.query.userProfilesTable.findFirst({
+                where: eq(userProfilesTable.userEmail, userEmail),
+                with: {
+                    skills: true,
+                    experience: true,
+                    projects: true,
+                    education: true,
+                }
+            });
+
+            if (profile) {
+                const parts = [];
+                if (profile.name) parts.push(`Name: ${profile.name}`);
+                if (profile.currentRole) parts.push(`Current Role: ${profile.currentRole}`);
+                if (profile.location) parts.push(`Location: ${profile.location}`);
+
+                if (profile.skills && profile.skills.length > 0) {
+                    parts.push(`Skills: ${profile.skills.map(s => s.skillName).join(", ")}`);
+                }
+
+                if (profile.experience && profile.experience.length > 0) {
+                    parts.push("Experience:");
+                    profile.experience.forEach(e => {
+                        parts.push(`- ${e.role} at ${e.company} (${e.startDate} - ${e.endDate || 'Present'})`);
+                        if (e.description) parts.push(`  ${e.description}`);
+                    });
+                }
+
+                if (profile.projects && profile.projects.length > 0) {
+                    parts.push("Projects:");
+                    profile.projects.forEach(p => {
+                        parts.push(`- ${p.title} (${p.techStack})`);
+                        if (p.description) parts.push(`  ${p.description}`);
+                    });
+                }
+
+                if (profile.education && profile.education.length > 0) {
+                    parts.push("Education:");
+                    profile.education.forEach(e => {
+                        parts.push(`- ${e.degree} from ${e.institution}`);
+                    });
+                }
+
+                if (parts.length > 0) {
+                    resumeText = parts.join("\n");
+                }
+            }
+        }
+
+        if (!resumeText) {
+            return new NextResponse("No resume or profile details found. Please complete your profile carrier details or upload a resume first.", { status: 400 });
         }
 
         // Determine the topic from the resume
@@ -32,7 +85,7 @@ Extract the primary job role they are targeting and their top 2 most prominent s
 Create a short, concise mock interview topic name (Max 4 words). Examples: "React Frontend Developer", "Backend Node.js Engineer", "Full Stack Web", "Data Science & Python".
 
 Resume Text:
-${latestResume.resumeText.substring(0, 3000)}
+${resumeText.substring(0, 3000)}
 
 Return ONLY a JSON object with this shape:
 { "topic": "Calculated Topic Here" }
@@ -66,7 +119,7 @@ You are conducting a ${duration} mock interview for the role of: "${topic}" at a
 You have access to the candidate's resume context to personalize the interview.
 
 Candidate Resume Excerpt:
-${latestResume.resumeText.substring(0, 3000)}
+${resumeText.substring(0, 3000)}
 
 Your goal right now is to briefly welcome the user, reference one specific interesting thing from their resume (a project, past job, or skill), and ask the very FIRST technical or behavioral interview question related to ${topic}.
 Do not ask multiple questions at once. Give a single, clear question to start.
