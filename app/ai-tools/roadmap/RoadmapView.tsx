@@ -1,7 +1,7 @@
 "use client"
 
 import { RoadmapResult, Milestone } from "@/types"
-import { Loader2, BookOpen, Clock, Lightbulb, CheckCircle2 } from "lucide-react"
+import { Loader2, BookOpen, Clock, Lightbulb, CheckCircle2, Code2, Terminal, ExternalLink } from "lucide-react"
 
 interface RoadmapViewProps {
     roadmap: RoadmapResult;
@@ -105,6 +105,36 @@ export default function RoadmapView({
                                     <p className="text-sm text-slate-300 leading-relaxed font-medium">{tip}</p>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-900 border border-white/5 rounded-4xl p-8 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-500">
+                            <Terminal className="w-24 h-24 text-blue-500" />
+                        </div>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-4">
+                                <Code2 className="w-5 h-5 text-blue-500" />
+                                <h3 className="text-lg font-black text-white uppercase tracking-tight">Practice Hub</h3>
+                            </div>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-6 leading-loose">
+                                Recommended Sandbox: <br />
+                                <span className="text-white text-sm">
+                                    {(roadmap?.title || "").toLowerCase().includes('react') ? 'React & Next.js Ecosystem' :
+                                        (roadmap?.title || "").toLowerCase().includes('python') ? 'Python Data Science Env' :
+                                            (roadmap?.title || "").toLowerCase().includes('data') ? 'SQL & Data Analysis' :
+                                                'Full-Stack Developer Sandbox'}
+                                </span>
+                            </p>
+                            <a
+                                href="https://codesandbox.io/s/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                                Open Playground
+                                <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
                         </div>
                     </div>
 

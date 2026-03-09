@@ -100,11 +100,12 @@ export default function DashboardContent({ metrics }: DashboardProps) {
                     </Link>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {[
                         { icon: MessageCircle, title: "Career Advisor", sub: "Strategic Guidance", href: "/ai-tools/ai-chat", gradient: "from-blue-600 to-cyan-500", label: "Initialize" },
                         { icon: FileText, title: "Resume Architect", sub: "Profile Construction", href: "/ai-tools/resume-builder", gradient: "from-purple-600 to-pink-500", label: "Initialize" },
                         { icon: Map, title: "Roadmaps", sub: "Learning Pathways", href: "/ai-tools/roadmap", gradient: "from-emerald-600 to-teal-500", label: "Initialize" },
+                        { icon: Target, title: "Readiness", sub: "Market Analysis", href: "/ai-tools/career-dashboard", gradient: "from-cyan-600 to-blue-500", label: "Analyze" },
                     ].map((tool, i) => (
                         <div key={i} className="group relative glass-card rounded-3xl py-6 px-8 hover:bg-white/[0.08] transition-all duration-700 backdrop-blur-3xl flex flex-col items-center text-center hover:-translate-y-4 hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)] border-white/5">
                             <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${tool.gradient} p-0.5 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 shadow-[0_0_40px_rgba(0,0,0,0.3)]`}>

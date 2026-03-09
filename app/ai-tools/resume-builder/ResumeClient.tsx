@@ -13,6 +13,7 @@ import {
     GraduationCap,
     Code,
     Layout,
+    Palette,
     Sparkles,
     Clock,
     Loader2
@@ -36,6 +37,8 @@ import ResumeEducation from "./ResumeEducation"
 import ResumeSkillsProjects from "./ResumeSkillsProjects"
 import ResumeHonors from "./ResumeHonors"
 import ResumeCustomSections from "./ResumeCustomSections"
+import ResumeTemplatesSelector from "./ResumeTemplatesSelector"
+import ATSDiagnostics from "@/components/resume/ATSDiagnostics"
 
 const INITIAL_DATA: ResumeData = {
     personalInfo: {
@@ -69,6 +72,7 @@ export default function ResumeClient() {
     const [loading, setLoading] = useState(!!resumeId)
     const [sidebarSize, setSidebarSize] = useState(20)
     const [fetchingProfile, setFetchingProfile] = useState(false)
+    const [previewTab, setPreviewTab] = useState<"preview" | "audit">("preview")
 
     useEffect(() => {
         if (resumeId) {
@@ -195,9 +199,10 @@ export default function ResumeClient() {
         { id: 4, name: "Skills & Projects", icon: Code },
         { id: 5, name: "Honors & Awards", icon: Sparkles },
         { id: 6, name: "Add New Section", icon: Layout },
+        { id: 7, name: "Design & Layout", icon: Palette },
     ]
 
-    const nextStep = () => setStep(s => Math.min(s + 1, 6))
+    const nextStep = () => setStep(s => Math.min(s + 1, 7))
     const prevStep = () => setStep(s => Math.max(s - 1, 1))
 
     if (loading) {
@@ -233,7 +238,7 @@ export default function ResumeClient() {
                                 Resume <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Architect</span>
                             </h1>
                             <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mt-2">
-                                Step {step} of 6: {steps[step - 1].name}
+                                Step {step} of 7: {steps[step - 1].name}
                             </p>
                         </div>
                     </div>
@@ -303,6 +308,7 @@ export default function ResumeClient() {
                                 {step === 4 && <ResumeSkillsProjects data={data} onChange={setData} />}
                                 {step === 5 && <ResumeHonors data={data} onChange={setData} />}
                                 {step === 6 && <ResumeCustomSections data={data} onChange={setData} />}
+                                {step === 7 && <ResumeTemplatesSelector data={data} onChange={setData} />}
 
                                 {/* Navigation Buttons */}
                                 <div className="pt-12 border-t border-white/5 flex items-center justify-between mt-20">
@@ -314,7 +320,7 @@ export default function ResumeClient() {
                                         <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                         Previous Step
                                     </button>
-                                    {step < 6 ? (
+                                    {step < 7 ? (
                                         <button
                                             onClick={nextStep}
                                             className="flex items-center gap-3 px-12 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-200 transition-all shadow-2xl group"
@@ -339,21 +345,39 @@ export default function ResumeClient() {
 
                     {/* Preview Area */}
                     <ResizablePanel defaultSize={40} minSize={30} className="hidden lg:block">
-                        <div id="preview-area" className="h-full bg-slate-900/50 overflow-y-auto custom-scrollbar relative p-8 pb-0">
-                            <div className="sticky top-0 mb-8 flex items-center justify-between z-20">
-                                <div className="flex items-center gap-3">
-                                    <Layout className="w-4 h-4 text-blue-500" />
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Live Document Preview</span>
+                        <div id="preview-area" className="h-full bg-slate-900/50 overflow-y-auto custom-scrollbar relative p-8 pb-12">
+                            <div className="sticky top-0 mb-8 flex items-center justify-between z-20 bg-slate-900/80 backdrop-blur-xl p-2 rounded-2xl border border-white/5">
+                                <div className="flex bg-white/5 p-1 rounded-xl">
+                                    <button
+                                        onClick={() => setPreviewTab("preview")}
+                                        className={`px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${previewTab === "preview" ? "bg-white text-black shadow-lg" : "text-slate-500 hover:text-white"}`}
+                                    >
+                                        Live Preview
+                                    </button>
+                                    <button
+                                        onClick={() => setPreviewTab("audit")}
+                                        className={`px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${previewTab === "audit" ? "bg-white text-black shadow-lg" : "text-slate-500 hover:text-white"}`}
+                                    >
+                                        ATS Audit
+                                    </button>
                                 </div>
-                                <div className="flex gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                                    <div className="w-2 h-2 rounded-full bg-blue-500/20" />
-                                    <div className="w-2 h-2 rounded-full bg-blue-500/10" />
+                                <div className="flex gap-2 px-4">
+                                    <div className={`w-2 h-2 rounded-full transition-all ${previewTab === 'preview' ? 'bg-blue-500 animate-pulse' : 'bg-green-500'}`} />
+                                    <div className="w-2 h-2 rounded-full bg-white/10" />
                                 </div>
                             </div>
-                            <div className="relative group">
+
+                            <div className="relative group max-w-4xl mx-auto">
                                 <div className="absolute -inset-4 bg-gradient-to-br from-blue-600/5 to-purple-600/5 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
-                                <ResumePreview data={data} />
+                                {previewTab === "preview" ? (
+                                    <div className="animate-in fade-in zoom-in-95 duration-500">
+                                        <ResumePreview data={data} />
+                                    </div>
+                                ) : (
+                                    <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                                        <ATSDiagnostics data={data} />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </ResizablePanel>

@@ -2,7 +2,10 @@ import { ResumeData } from "@/types";
 import { jsPDF } from "jspdf";
 
 export const TEMPLATES = [
-    { id: "corporate", name: "Corporate Professional", description: "Standard corporate/academic layout with centered headers and section dividers." },
+    { id: "corporate", name: "Corporate Professional", description: "Standard corporate layout with centered headers and section dividers." },
+    { id: "creative", name: "Modern Creative", description: "Stylish two-column layout with sidebar and accented typography." },
+    { id: "executive", name: "Elite Executive", description: "Minimalist, heavy on summary and leadership experience with premium serif fonts." },
+    { id: "academic", name: "Scholarly Academic", description: "Clean, info-dense single-column layout focused on research and education." },
 ];
 
 export const downloadResume = (data: ResumeData) => {
@@ -405,6 +408,148 @@ export const downloadResume = (data: ResumeData) => {
         }
     };
 
-    renderCorporate();
-    doc.save(`${personalInfo.fullName.replace(/\s+/g, '_')}_Resume_v3.0.pdf`);
+    const renderCreative = () => {
+        let y = 15;
+        const margin = 15;
+        const mainX = 75;
+        const sidebarW = 50;
+        const mainW = 120;
+
+        // Background for sidebar
+        doc.setFillColor(248, 250, 252);
+        doc.rect(0, 0, mainX - 10, 297, "F");
+
+        // Sidebar content
+        let sy = 30;
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(30, 41, 59);
+        const nameParts = personalInfo.fullName.split(" ");
+        nameParts.forEach(part => {
+            doc.text(part.toUpperCase(), margin, sy);
+            sy += 8;
+        });
+
+        sy += 10;
+        doc.setFontSize(9);
+        doc.setTextColor(71, 85, 105);
+        if (personalInfo.phone) { doc.text(personalInfo.phone, margin, sy); sy += 5; }
+        if (personalInfo.email) { doc.text(personalInfo.email, margin, sy); sy += 5; }
+        if (personalInfo.linkedin) {
+            doc.setTextColor(37, 99, 235);
+            doc.text("LinkedIn", margin, sy);
+            sy += 5;
+        }
+
+        sy += 15;
+        doc.setTextColor(30, 41, 59);
+        doc.setFont("helvetica", "bold");
+        doc.text("SKILLS", margin, sy);
+        sy += 6;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(71, 85, 105);
+        skills.forEach(s => {
+            doc.text(s.category.toUpperCase(), margin, sy);
+            sy += 4;
+            const skillLines = doc.splitTextToSize(s.skills.join(", "), sidebarW - 10);
+            doc.text(skillLines, margin, sy);
+            sy += (skillLines.length * 4) + 4;
+        });
+
+        // Main content
+        y = 30;
+        doc.setTextColor(30, 41, 59);
+        if (personalInfo.summary) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text("PROFILE", mainX, y);
+            y += 6;
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            const summaryLines = doc.splitTextToSize(personalInfo.summary, mainW);
+            doc.text(summaryLines, mainX, y);
+            y += (summaryLines.length * 4.5) + 10;
+        }
+
+        const creativeHeader = (title: string) => {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(37, 99, 235);
+            doc.text(title, mainX, y);
+            y += 2;
+            doc.setDrawColor(37, 99, 235);
+            doc.setLineWidth(0.5);
+            doc.line(mainX, y, mainX + 15, y);
+            y += 8;
+        };
+
+        if (experience.length > 0) {
+            creativeHeader("EXPERIENCE");
+            experience.forEach(exp => {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                doc.setTextColor(30, 41, 59);
+                doc.text(exp.role, mainX, y);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                doc.text(`${exp.startDate} - ${exp.endDate}`, mainX + mainW, y, { align: "right" });
+                y += 4.5;
+                doc.setFont("helvetica", "italic");
+                doc.text(exp.company, mainX, y);
+                y += 6;
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8.5);
+                const desc = doc.splitTextToSize(exp.description, mainW);
+                doc.text(desc, mainX, y);
+                y += (desc.length * 4) + 8;
+            });
+        }
+    };
+
+    const renderExecutive = () => {
+        let y = 20;
+        const margin = 20;
+        const width = 170;
+
+        doc.setFont("times", "bold");
+        doc.setFontSize(28);
+        doc.text(personalInfo.fullName, 105, y, { align: "center" });
+        y += 10;
+        doc.setFontSize(10);
+        doc.setFont("times", "normal");
+        doc.text(`${personalInfo.email}  •  ${personalInfo.phone}  •  ${personalInfo.address}`, 105, y, { align: "center" });
+        y += 15;
+
+        if (personalInfo.summary) {
+            doc.setFont("times", "bolditalic");
+            doc.setFontSize(12);
+            doc.text("EXECUTIVE SUMMARY", 105, y, { align: "center" });
+            y += 6;
+            doc.setFont("times", "normal");
+            const lines = doc.splitTextToSize(personalInfo.summary, width);
+            doc.text(lines, margin, y);
+            y += (lines.length * 5) + 12;
+        }
+
+        experience.forEach(exp => {
+            doc.setFont("times", "bold");
+            doc.text(exp.company.toUpperCase(), margin, y);
+            doc.text(`${exp.startDate} - ${exp.endDate}`, 190, y, { align: "right" });
+            y += 5;
+            doc.setFont("times", "italic");
+            doc.text(exp.role, margin, y);
+            y += 6;
+            doc.setFont("times", "normal");
+            const lines = doc.splitTextToSize(exp.description, width);
+            doc.text(lines, margin, y);
+            y += (lines.length * 5) + 8;
+        });
+    };
+
+    if (data.template === "creative") renderCreative();
+    else if (data.template === "executive") renderExecutive();
+    else renderCorporate();
+
+    doc.save(`${personalInfo.fullName.replace(/\s+/g, '_')}_Resume_Saarthi.pdf`);
 };
