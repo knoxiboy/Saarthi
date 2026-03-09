@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Plus, Send, History, X, MessageSquare, Copy, Check, Trash2, Sparkles, Loader2, Share2, Globe, Link as LinkIcon, ArrowLeft, Paperclip } from "lucide-react"
 import axios from "axios";
 import Link from "next/link";
@@ -57,6 +57,7 @@ export default function CareerChatClient() {
     const [historyLoading, setHistoryLoading] = useState(false)
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
     const searchParams = useSearchParams()
+    const router = useRouter()
     const urlChatId = searchParams.get("chatId")
 
     // Sync URL Chat ID with session

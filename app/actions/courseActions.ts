@@ -60,11 +60,16 @@ function generateCourseHash(topic: string, level: string, duration: string, goal
  * STEP 1: Fast Generation - Outline & Skeleton
  */
 export async function createCourseAction(
+    topic: string,
+    level: string,
+    duration: string,
+    goalType: string,
+    roadmapId?: number,
     milestoneId?: number
 ) {
     const validated = CreateCourseSchema.safeParse({ topic, level, duration, goalType, roadmapId, milestoneId });
     if (!validated.success) {
-        return { success: false, error: validated.error.errors[0].message };
+        return { success: false, error: validated.error.issues[0].message };
     }
     const {
         topic: safeTopic,
