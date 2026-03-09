@@ -30,6 +30,7 @@ export const metadata: Metadata = {
 };
 
 import { dark } from "@clerk/themes";
+import { CommandMenu } from "@/components/CommandMenu";
 
 export default function RootLayout({
   children,
@@ -70,6 +71,7 @@ export default function RootLayout({
           className={`${AppFont.className} bg-slate-950 text-slate-200 antialiased`}
         >
           <Provider>
+            <CommandMenu />
             {children}
           </Provider>
         </body>

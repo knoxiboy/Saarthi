@@ -59,9 +59,9 @@ export default function DashboardContent({ metrics }: DashboardProps) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {metricCards.map((metric, i) => (
-                        <div key={i} className="group relative glass-card rounded-2xl p-6 hover:bg-white/[0.08] transition-all duration-500 border-white/5 overflow-hidden">
+                        <div key={i} className="group relative glass-card rounded-2xl p-6 hover:bg-white/8 transition-all duration-500 border-white/5 overflow-hidden">
                             <div className="flex items-center justify-between mb-4">
-                                <div className={`p-3 rounded-xl bg-gradient-to-br ${metric.gradient} bg-opacity-10`}>
+                                <div className={`p-3 rounded-xl bg-linear-to-br ${metric.gradient} bg-opacity-10`}>
                                     <metric.icon className="w-6 h-6 text-white" />
                                 </div>
                                 <TrendingUp className="w-4 h-4 text-emerald-500 opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -79,7 +79,7 @@ export default function DashboardContent({ metrics }: DashboardProps) {
                             </div>
 
                             {/* Decorative background element */}
-                            <div className={`absolute -right-4 -bottom-4 w-24 h-24 bg-gradient-to-br ${metric.gradient} blur-[40px] opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+                            <div className={`absolute -right-4 -bottom-4 w-24 h-24 bg-linear-to-br ${metric.gradient} blur-2xl opacity-10 group-hover:opacity-20 transition-opacity`}></div>
                         </div>
                     ))}
                 </div>
@@ -107,8 +107,8 @@ export default function DashboardContent({ metrics }: DashboardProps) {
                         { icon: Map, title: "Roadmaps", sub: "Learning Pathways", href: "/ai-tools/roadmap", gradient: "from-emerald-600 to-teal-500", label: "Initialize" },
                         { icon: Target, title: "Readiness", sub: "Market Analysis", href: "/ai-tools/career-dashboard", gradient: "from-cyan-600 to-blue-500", label: "Analyze" },
                     ].map((tool, i) => (
-                        <div key={i} className="group relative glass-card rounded-3xl py-6 px-8 hover:bg-white/[0.08] transition-all duration-700 backdrop-blur-3xl flex flex-col items-center text-center hover:-translate-y-4 hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)] border-white/5">
-                            <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${tool.gradient} p-0.5 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 shadow-[0_0_40px_rgba(0,0,0,0.3)]`}>
+                        <div key={i} className="group relative glass-card rounded-3xl py-6 px-8 hover:bg-white/8 transition-all duration-700 backdrop-blur-3xl flex flex-col items-center text-center hover:-translate-y-4 hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)] border-white/5">
+                            <div className={`w-20 h-20 rounded-2xl bg-linear-to-br ${tool.gradient} p-0.5 mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 shadow-[0_0_40px_rgba(0,0,0,0.3)]`}>
                                 <div className="w-full h-full bg-slate-950 rounded-[calc(1.8rem-px)] flex items-center justify-center">
                                     <tool.icon className="w-10 h-10 text-white group-hover:scale-110 transition-all duration-700" />
                                 </div>

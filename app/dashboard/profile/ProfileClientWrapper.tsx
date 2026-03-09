@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight, UserCircle } from "lucide-react"
+import { ArrowRight, UserCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { BackButton } from "@/components/ui/BackButton"
 
 import Onboarding from "@/components/saarthi-profile/Onboarding"
 import ProfileHeader from "@/components/saarthi-profile/ProfileHeader"
@@ -57,10 +58,11 @@ export default function ProfileClientWrapper({ initialProfile }: ProfileClientWr
                     className="space-y-8"
                 >
                     {/* Dashboard Header */}
+                    <BackButton className="mb-8" />
                     <div className="flex items-center justify-between gap-4 mb-12">
                         <div>
                             <h1 className="text-4xl font-black text-white uppercase tracking-tight">
-                                Command <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Center</span>
+                                Command <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500">Center</span>
                             </h1>
                             <div className="flex items-center gap-4 mt-1">
                                 <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Your Personal Career Intel</p>

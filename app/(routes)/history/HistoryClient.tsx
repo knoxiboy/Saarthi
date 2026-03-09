@@ -19,6 +19,7 @@ import {
 import axios from "axios"
 import Link from "next/link"
 import { toast } from "sonner"
+import { BackButton } from "@/components/ui/BackButton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
     AlertDialog,
@@ -126,6 +127,7 @@ export default function HistoryClient({ initialData }: HistoryClientProps) {
 
     return (
         <div className="max-w-7xl mx-auto px-6 py-12 pb-32">
+            <BackButton className="mb-8" />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                 <div>
                     <h1 className="text-4xl font-black text-white tracking-tight mb-2 uppercase">Your Growth History</h1>
