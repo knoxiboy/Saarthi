@@ -329,7 +329,7 @@ export const interviewQuestionsTable = pgTable("interview_questions", {
     sequenceOrder: integer().notNull(),
 });
 
-// Mock Interview Relations
+// AI Mock Interview Relations
 export const mockInterviewsRelations = relations(mockInterviewsTable, ({ many }) => ({
     questions: many(interviewQuestionsTable),
 }));
@@ -340,3 +340,13 @@ export const interviewQuestionsRelations = relations(interviewQuestionsTable, ({
         references: [mockInterviewsTable.id],
     }),
 }));
+
+// AI Caching Layer
+export const aiResponsesCacheTable = pgTable("ai_responses_cache", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    cacheKey: varchar({ length: 255 }).notNull().unique(), // Hash of topic + config
+    response: text().notNull(), // JSON string of the AI output
+    provider: varchar({ length: 50 }).notNull(), // Groq, Bedrock, etc.
+    type: varchar({ length: 50 }).notNull(), // course_outline, roadmap, etc.
+    createdAt: timestamp().defaultNow().notNull(),
+});

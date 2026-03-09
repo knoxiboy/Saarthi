@@ -17,6 +17,7 @@ import { searchYoutubeVideos } from "@/lib/ai/youtube";
 import { currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
+import { inngest } from "@/inngest/client";
 
 /**
  * Limit concurrency for async tasks
@@ -119,6 +120,12 @@ export async function createCourseAction(
             }
         }
 
+        // 4. Trigger Background Generation via Inngest
+        await inngest.send({
+            name: "course/generate.content",
+            data: { courseId }
+        });
+
         return { success: true, courseId };
 
     } catch (error: unknown) {
@@ -133,62 +140,13 @@ export async function createCourseAction(
  */
 export async function generateCourseContentAction(courseId: number) {
     try {
-        const course = await db.query.coursesTable.findFirst({
-            where: eq(coursesTable.id, courseId),
-            with: { modules: { with: { lessons: true } } }
+        await inngest.send({
+            name: "course/generate.content",
+            data: { courseId }
         });
-
-        if (!course) throw new Error("Course not found");
-        if (course.generationStatus === "completed") return { success: true };
-
-        const allLessons = course.modules.flatMap(m => m.lessons);
-
-        // Parallel generation with limit of 6 for better speed without hitting rate limits too hard
-        await promiseLimit(allLessons, 6, async (lesson) => {
-            try {
-                // 1. Generate Deep Content (800+ words if advanced)
-                const content = await generateLessonContent(
-                    lesson.title,
-                    lesson.content || "", // Focus was stored here
-                    course.level || "Intermediate",
-                    course.goalType || "Mastery"
-                );
-
-                // 2. Generate Quiz
-                const quiz = await generateQuiz(content.explanation);
-
-                // 3. Smart YouTube Search & Rank
-                const videoCandidates = await searchYoutubeVideos(lesson.title, course.title, course.level || "Intermediate");
-                const rankedVideoId = await rankYouTubeVideos(videoCandidates, course.level || "Intermediate");
-                const bestVideo = videoCandidates.find(v => v.videoId === rankedVideoId) || videoCandidates[0];
-
-                // 4. Update Database
-                await db.update(courseLessonsTable).set({
-                    explanation: content.explanation,
-                    content: content.explanation, // Compatibility
-                    realWorldExample: content.realWorldExample,
-                    codeExample: content.codeExample,
-                    commonMistakes: JSON.stringify(content.commonMistakes),
-                    exercise: content.exercise,
-                    interviewQuestions: JSON.stringify(content.interviewQuestions),
-                    quiz: JSON.stringify(quiz),
-                    takeaways: JSON.stringify(content.commonMistakes.slice(0, 3)), // Compatibility
-                    videoUrl: bestVideo ? `https://www.youtube.com/watch?v=${bestVideo.videoId}` : null,
-                    videoTitle: bestVideo?.title || ""
-                }).where(eq(courseLessonsTable.id, lesson.id));
-
-            } catch (err) {
-                console.error(`Failed to generate content for lesson ${lesson.id}:`, err);
-            }
-        });
-
-        // Mark as completed
-        await db.update(coursesTable).set({ generationStatus: "completed" }).where(eq(coursesTable.id, courseId));
         return { success: true };
-
     } catch (error: unknown) {
-        console.error("[COURSE_ACTION] Background Generation Error:", error);
-        await db.update(coursesTable).set({ generationStatus: "failed" }).where(eq(coursesTable.id, courseId));
+        console.error("[COURSE_ACTION] Inngest Trigger Error:", error);
         return { success: false, error: error instanceof Error ? error.message : "An unknown error occurred" };
     }
 }

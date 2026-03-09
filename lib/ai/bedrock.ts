@@ -1,6 +1,10 @@
 import { chatWithGroq } from "./groq";
 import { MODELS } from "./models";
 import { z } from "zod";
+import * as crypto from "crypto";
+import { db } from "../db/db";
+import { aiResponsesCacheTable } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 // Zod Schemas for Validation
 const CourseOutlineSchema = z.object({
@@ -64,6 +68,25 @@ async function callGroqPremium(model: string, systemPrompt: string, userPrompt: 
 }
 
 /**
+ * Helper to get/set cache
+ */
+async function getCachedResponse(key: string) {
+    const cached = await db.query.aiResponsesCacheTable.findFirst({
+        where: eq(aiResponsesCacheTable.cacheKey, key)
+    });
+    return cached ? JSON.parse(cached.response) : null;
+}
+
+async function setCachedResponse(key: string, response: any, type: string, provider: string = "Groq") {
+    await db.insert(aiResponsesCacheTable).values({
+        cacheKey: key,
+        response: JSON.stringify(response),
+        type,
+        provider
+    }).onConflictDoNothing();
+}
+
+/**
  * STEP 1: Generate the high-level course skeleton
  */
 export async function generateCourseOutline(topic: string, level: string, duration: string, goalType: string) {
@@ -112,7 +135,15 @@ export async function generateCourseOutline(topic: string, level: string, durati
       ]
     }`;
 
+    const cacheKey = crypto.createHash("md5").update(`outline-${topic}-${level}-${duration}-${goalType}`).digest("hex");
+
     try {
+        const cached = await getCachedResponse(cacheKey);
+        if (cached) {
+            console.log("[BEDROCK] Serving cached outline for:", topic);
+            return cached;
+        }
+
         const raw = await callGroqPremium(MODELS.PRIMARY, systemPrompt, userPrompt);
         console.log("[BEDROCK] Raw Outline Response:", raw);
 
@@ -130,6 +161,7 @@ export async function generateCourseOutline(topic: string, level: string, durati
             throw new Error("AI response did not match the expected course structure. Likely too many modules for a single response.");
         }
 
+        await setCachedResponse(cacheKey, validated.data, "course_outline");
         return validated.data;
     } catch (error: any) {
         console.error("Course Outline Generation Failed:", error);
