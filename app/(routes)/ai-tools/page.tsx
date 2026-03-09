@@ -12,9 +12,11 @@ import {
     Target,
     ShieldCheck,
     PenTool,
-    BookOpen
+    BookOpen,
+    ArrowLeft
 } from "lucide-react"
 import Link from "next/link"
+import { BackButton } from "@/components/ui/BackButton"
 
 const tools = [
     {
@@ -70,21 +72,30 @@ const tools = [
         color: "from-indigo-600 to-violet-500",
         tag: "Personalized",
         features: ["Structured Lessons", "YouTube Integration", "AI Quizzes"]
+    },
+    {
+        title: "Career Readiness",
+        description: "Analyze your job readiness score, view skill heatmaps, and track your career growth progress.",
+        icon: Target,
+        href: "/ai-tools/career-dashboard",
+        color: "from-cyan-600 to-blue-500",
+        tag: "Analytics",
+        features: ["Readiness Score", "Skill Heatmaps", "Growth Tracking"]
     }
 ]
 
 export default function AiToolsHub() {
     return (
         <div className="p-8 lg:p-16 space-y-12 lg:space-y-16 max-w-7xl mx-auto">
-            {/* Header Section */}
             <div className="border-b border-white/5 pb-12 mb-12">
                 <div className="space-y-4">
+                    <BackButton className="mb-4" />
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest leading-none">
                         <Wrench className="w-3 h-3" />
                         Core Workspace
                     </div>
                     <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">
-                        Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Features</span>
+                        Our <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500">Features</span>
                     </h1>
                     <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-xl">
                         Explore our suite of AI-driven career tools designed to accelerate your professional growth.
@@ -103,12 +114,12 @@ export default function AiToolsHub() {
                         <Link href={tool.href} className="group block h-full">
                             <div className="relative h-full bg-white/5 backdrop-blur-2xl rounded-[3rem] p-1 border border-white/10 shadow-sm hover:shadow-[0_0_50px_rgba(37,99,235,0.1)] hover:border-white/20 transition-all duration-500 overflow-hidden">
                                 {/* Dynamic Background Glow */}
-                                <div className={`absolute -top-32 -right-32 w-80 h-80 bg-gradient-to-br ${tool.color} opacity-0 group-hover:opacity-[0.08] blur-[100px] transition-opacity duration-700`} />
-                                <div className={`absolute -bottom-32 -left-32 w-80 h-80 bg-gradient-to-br ${tool.color} opacity-0 group-hover:opacity-[0.05] blur-[100px] transition-opacity duration-700`} />
+                                <div className={`absolute -top-32 -right-32 w-80 h-80 bg-linear-to-br ${tool.color} opacity-0 group-hover:opacity-[0.08] blur-[100px] transition-opacity duration-700`} />
+                                <div className={`absolute -bottom-32 -left-32 w-80 h-80 bg-linear-to-br ${tool.color} opacity-0 group-hover:opacity-[0.05] blur-[100px] transition-opacity duration-700`} />
 
                                 <div className="relative p-10 lg:p-12 h-full flex flex-col">
                                     <div className="flex items-start justify-between mb-10">
-                                        <div className={`p-5 rounded-2xl bg-gradient-to-br ${tool.color} p-0.5 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                                        <div className={`p-5 rounded-2xl bg-linear-to-br ${tool.color} p-0.5 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                                             <div className="w-full h-full bg-slate-950 rounded-[calc(1rem-2px)] flex items-center justify-center p-3">
                                                 <tool.icon className="w-8 h-8 text-white" />
                                             </div>
@@ -128,7 +139,7 @@ export default function AiToolsHub() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
                                         {tool.features.map((feature) => (
                                             <div key={feature} className="flex items-center gap-2.5 text-xs font-bold text-slate-500 group-hover:text-slate-300 transition-colors">
-                                                <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-br ${tool.color} shadow-[0_0_8px_rgba(255,255,255,0.2)]`} />
+                                                <div className={`w-1.5 h-1.5 rounded-full bg-linear-to-br ${tool.color} shadow-[0_0_8px_rgba(255,255,255,0.2)]`} />
                                                 {feature}
                                             </div>
                                         ))}
@@ -145,6 +156,6 @@ export default function AiToolsHub() {
                     </div>
                 ))}
             </div>
-        </div>
+        </div >
     )
 }
