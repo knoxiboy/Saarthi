@@ -15,6 +15,50 @@ import {
 import { eq, and } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const ExperienceSchema = z.array(z.object({
+    company: z.string().min(1),
+    role: z.string().min(1),
+    location: z.string().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    description: z.string().optional()
+}));
+
+const EducationSchema = z.array(z.object({
+    institution: z.string().min(1),
+    degree: z.string().min(1),
+    fieldOfStudy: z.string().optional(),
+    cgpa: z.string().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    description: z.string().optional()
+}));
+
+const SkillSchema = z.array(z.object({
+    skillName: z.string().min(1),
+    category: z.string().optional()
+}));
+
+const ProjectSchema = z.array(z.object({
+    title: z.string().min(1),
+    techStack: z.string().optional(),
+    description: z.string().optional(),
+    links: z.string().optional()
+}));
+
+const LinkSchema = z.array(z.object({
+    platform: z.string().min(1),
+    url: z.string().url()
+}));
+
+const GoalSchema = z.object({
+    targetRole: z.string().optional(),
+    industry: z.string().optional(),
+    desiredSalary: z.string().optional(),
+    locationPreference: z.string().optional()
+});
 
 export async function getUserProfileAction() {
     try {
@@ -55,84 +99,64 @@ export async function updateProfileAction(type: string, data: any) {
 
         switch (type) {
             case "experience":
+                const validatedExp = ExperienceSchema.parse(data);
                 await db.delete(userExperienceTable).where(eq(userExperienceTable.userEmail, userEmail));
-                if (data.length > 0) {
-                    await db.insert(userExperienceTable).values(data.map((item: any) => ({
+                if (validatedExp.length > 0) {
+                    await db.insert(userExperienceTable).values(validatedExp.map((item: any) => ({
                         userEmail,
-                        company: item.company,
-                        role: item.role,
-                        location: item.location,
-                        startDate: item.startDate,
-                        endDate: item.endDate,
-                        description: item.description
+                        ...item
                     })));
                 }
                 break;
             case "education":
+                const validatedEdu = EducationSchema.parse(data);
                 await db.delete(userEducationTable).where(eq(userEducationTable.userEmail, userEmail));
-                if (data.length > 0) {
-                    await db.insert(userEducationTable).values(data.map((item: any) => ({
+                if (validatedEdu.length > 0) {
+                    await db.insert(userEducationTable).values(validatedEdu.map((item: any) => ({
                         userEmail,
-                        institution: item.institution,
-                        degree: item.degree,
-                        fieldOfStudy: item.fieldOfStudy,
-                        cgpa: item.cgpa,
-                        startDate: item.startDate,
-                        endDate: item.endDate,
-                        description: item.description
-                    })));
-                }
-                break;
-            case "achievements":
-                await db.delete(userAchievementsTable).where(eq(userAchievementsTable.userEmail, userEmail));
-                if (data.length > 0) {
-                    await db.insert(userAchievementsTable).values(data.map((item: any) => ({
-                        userEmail,
-                        title: item.title,
-                        description: item.description
+                        ...item
                     })));
                 }
                 break;
             case "skills":
+                const validatedSkills = SkillSchema.parse(data);
                 await db.delete(userSkillsTable).where(eq(userSkillsTable.userEmail, userEmail));
-                if (data.length > 0) {
-                    await db.insert(userSkillsTable).values(data.map((item: any) => ({
+                if (validatedSkills.length > 0) {
+                    await db.insert(userSkillsTable).values(validatedSkills.map((item: any) => ({
                         userEmail,
-                        category: item.category,
-                        skillName: item.skillName
+                        ...item
                     })));
                 }
                 break;
             case "projects":
+                const validatedProjects = ProjectSchema.parse(data);
                 await db.delete(userProjectsTable).where(eq(userProjectsTable.userEmail, userEmail));
-                if (data.length > 0) {
-                    await db.insert(userProjectsTable).values(data.map((item: any) => ({
+                if (validatedProjects.length > 0) {
+                    await db.insert(userProjectsTable).values(validatedProjects.map((item: any) => ({
                         userEmail,
-                        title: item.title,
-                        techStack: item.techStack,
-                        description: item.description,
-                        links: item.links
+                        ...item
                     })));
                 }
                 break;
             case "links":
+                const validatedLinks = LinkSchema.parse(data);
                 await db.delete(professionalLinksTable).where(eq(professionalLinksTable.userEmail, userEmail));
-                if (data.length > 0) {
-                    await db.insert(professionalLinksTable).values(data.map((item: any) => ({
+                if (validatedLinks.length > 0) {
+                    await db.insert(professionalLinksTable).values(validatedLinks.map((item: any) => ({
                         userEmail,
-                        platform: item.platform,
-                        url: item.url
+                        ...item
                     })));
                 }
                 break;
             case "goals":
+                const validatedGoals = GoalSchema.parse(data);
                 const existingGoals = await db.query.careerGoalsTable.findFirst({
                     where: eq(careerGoalsTable.userEmail, userEmail)
                 });
                 if (existingGoals) {
-                    await db.update(careerGoalsTable).set(data).where(eq(careerGoalsTable.userEmail, userEmail));
+                    await db.update(careerGoalsTable).set(validatedGoals).where(eq(careerGoalsTable.userEmail, userEmail));
                 } else {
-                    await db.insert(careerGoalsTable).values({ userEmail, ...data });
+                    await db.insert(careerGoalsTable).values({ userEmail, ...validatedGoals });
                 }
                 break;
             case "header":

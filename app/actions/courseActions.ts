@@ -18,6 +18,16 @@ import { currentUser } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 import { inngest } from "@/inngest/client";
+import { z } from "zod";
+
+const CreateCourseSchema = z.object({
+    topic: z.string().min(2).max(100),
+    level: z.enum(["Beginner", "Intermediate", "Advanced", "Professional"]).default("Intermediate"),
+    duration: z.string().min(1).max(20).default("4 Weeks"),
+    goalType: z.enum(["Mastery", "Fast-Track", "Job-Ready", "Academic"]).default("Mastery"),
+    roadmapId: z.number().optional(),
+    milestoneId: z.number().optional()
+});
 
 /**
  * Limit concurrency for async tasks
@@ -50,14 +60,20 @@ function generateCourseHash(topic: string, level: string, duration: string, goal
  * STEP 1: Fast Generation - Outline & Skeleton
  */
 export async function createCourseAction(
-    topic: string,
-    level: string = "Intermediate",
-    duration: string = "4 Weeks",
-    goalType: string = "Mastery",
-    roadmapId?: number,
     milestoneId?: number
 ) {
-    console.log(">>> [DEBUG] createCourseAction CALLED <<<", { topic, level, duration });
+    const validated = CreateCourseSchema.safeParse({ topic, level, duration, goalType, roadmapId, milestoneId });
+    if (!validated.success) {
+        return { success: false, error: validated.error.errors[0].message };
+    }
+    const {
+        topic: safeTopic,
+        level: safeLevel,
+        duration: safeDuration,
+        goalType: safeGoal
+    } = validated.data;
+
+    console.log(">>> [DEBUG] createCourseAction CALLED <<<", { safeTopic, safeLevel, safeDuration });
     try {
         const user = await currentUser();
         if (!user || !user.primaryEmailAddress?.emailAddress) {
