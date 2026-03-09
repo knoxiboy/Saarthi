@@ -1,7 +1,7 @@
 "use client"
-
 import { useState } from 'react'
 import { AlignLeft, Check, Copy, Download, FileText, RefreshCw, Wand2, Loader2 } from "lucide-react"
+import { motion, AnimatePresence } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -55,7 +55,12 @@ export default function WritingDisplay({
     }
 
     return (
-        <div className="flex flex-col bg-white/2 border border-white/5 rounded-5xl p-7 md:p-9 shadow-2xl backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-10 duration-1000 relative overflow-hidden h-fit max-h-[75vh] min-h-[600px]">
+        <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col bg-white/2 border border-white/5 rounded-5xl p-7 md:p-9 shadow-2xl backdrop-blur-3xl relative overflow-hidden h-fit max-h-[75vh] min-h-[600px]"
+        >
             <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/5 blur-[100px] -ml-40 -mb-40 rounded-full pointer-events-none" />
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-6">
@@ -115,21 +120,35 @@ export default function WritingDisplay({
             </div>
 
             <div className="flex-1 bg-white/5 rounded-4xl border border-white/5 overflow-hidden flex flex-col shadow-inner relative group min-h-[500px]">
-                {mode === "edit" ? (
-                    <textarea
-                        value={output}
-                        onChange={(e) => setOutput(e.target.value)}
-                        className="flex-1 w-full h-[500px] bg-slate-900/50 p-12 md:p-16 focus:outline-none text-slate-300 font-mono text-sm leading-relaxed resize-none selection:bg-blue-500/30 overflow-y-auto custom-scrollbar"
-                    />
-                ) : (
-                    <div className="flex-1 p-12 md:p-16 overflow-y-auto custom-scrollbar">
-                        <div className="prose prose-invert prose-blue max-w-none text-slate-300 font-serif italic text-lg leading-relaxed">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {output}
-                            </ReactMarkdown>
-                        </div>
-                    </div>
-                )}
+                <AnimatePresence mode="wait">
+                    {mode === "edit" ? (
+                        <motion.textarea
+                            key="edit"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.02 }}
+                            transition={{ duration: 0.3 }}
+                            value={output}
+                            onChange={(e) => setOutput(e.target.value)}
+                            className="flex-1 w-full h-full min-h-[500px] bg-slate-900/50 p-12 md:p-16 focus:outline-none text-slate-300 font-mono text-sm leading-relaxed resize-none selection:bg-blue-500/30 overflow-y-auto custom-scrollbar"
+                        />
+                    ) : (
+                        <motion.div
+                            key="preview"
+                            initial={{ opacity: 0, scale: 1.02 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex-1 p-12 md:p-16 overflow-y-auto custom-scrollbar h-full min-h-[500px]"
+                        >
+                            <div className="prose prose-invert prose-blue max-w-none text-slate-300 font-serif italic text-lg leading-relaxed">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {output}
+                                </ReactMarkdown>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             <div className="mt-8 flex items-center justify-between">
@@ -147,6 +166,6 @@ export default function WritingDisplay({
                     Regenerate
                 </button>
             </div>
-        </div>
+        </motion.div>
     );
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useDropzone } from "react-dropzone"
 import { Upload, FileText, Send, ArrowUp, ShieldCheck, Briefcase, History, Trash2, Target, Zap, ArrowLeft, Loader2, Globe } from "lucide-react"
 import { motion } from "framer-motion"
@@ -28,6 +28,7 @@ import autoTable from "jspdf-autotable"
 import ResultsDisplay from "./ResultsDisplay"
 
 export default function ResumeAnalyzerClient() {
+    const router = useRouter()
     const [file, setFile] = useState<File | null>(null)
     const [useSpecificJD, setUseSpecificJD] = useState(true)
     const [jobDescription, setJobDescription] = useState("")
@@ -353,10 +354,10 @@ Platform: ${extractedData.platform}
         <div className="min-h-screen bg-slate-950">
             {/* Header */}
             <div className="max-w-7xl mx-auto px-6 py-8">
-                <Link href="/ai-tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
+                <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     <span className="text-sm font-medium">Back to Features</span>
-                </Link>
+                </button>
 
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="max-w-3xl">

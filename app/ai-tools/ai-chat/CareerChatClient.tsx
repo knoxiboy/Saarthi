@@ -329,10 +329,10 @@ export default function CareerChatClient() {
             <div className="max-w-7xl mx-auto px-6 py-8 w-full">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/5 pb-5">
                     <div className="flex items-center justify-between w-full">
-                        <Link href="/ai-tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-0 group">
+                        <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-0 group">
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                             <span className="text-sm font-medium">Back to Features</span>
-                        </Link>
+                        </button>
 
                         <div className="flex items-center gap-3">
                             {currentChatId && (
@@ -431,7 +431,7 @@ export default function CareerChatClient() {
                                 <MessageSquare className="w-12 h-12 text-blue-500" />
                             </div>
                             <div>
-                                <h2 className="text-5xl font-black text-white mb-4 uppercase tracking-tighter">How can I <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 italic">Help You?</span></h2>
+                                <h2 className="text-5xl font-black text-white mb-4 uppercase tracking-tighter">How can I <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500 italic">Help You?</span></h2>
                                 <p className="text-slate-500 text-lg font-medium max-w-lg mx-auto leading-relaxed">Select a tailored prompt below or start typing to begin your chat session.</p>
                             </div>
                         </div>

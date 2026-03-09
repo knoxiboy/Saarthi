@@ -138,10 +138,13 @@ export default function CourseClient() {
 
                 {/* Back to Dashboard Button */}
                 <div className="absolute top-8 left-8 sm:top-12 sm:left-12 z-50">
-                    <Link href="/ai-tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group"
+                    >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-sm font-medium">Back to Features</span>
-                    </Link>
+                        <span className="text-sm font-medium">Go Back</span>
+                    </button>
                 </div>
 
                 <motion.div
@@ -154,9 +157,9 @@ export default function CourseClient() {
                             <Zap className="w-3 h-3 fill-current" /> Premium AI Engine
                         </div>
                         <h1 className="text-6xl font-black text-white uppercase tracking-tighter leading-none mb-4">
-                            Saarthi <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">Course Forge</span>
+                            Saarthi <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 via-purple-500 to-pink-500">Course Forge</span>
                         </h1>
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full text-xs font-bold text-amber-200 uppercase tracking-wider mb-6">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full text-xs font-bold text-amber-200 uppercase tracking-wider mb-6">
                             <Sparkles className="w-4 h-4 text-amber-400" />
                             Beta Version: We're rapidly evolving this engine to be even more advanced.
                         </div>
@@ -165,7 +168,7 @@ export default function CourseClient() {
                         </p>
                     </div>
 
-                    <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 backdrop-blur-3xl shadow-2xl relative overflow-hidden">
+                    <div className="bg-white/5 border border-white/10 rounded-4xl p-12 backdrop-blur-3xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 blur-[120px] -mr-48 -mt-48 rounded-full" />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
@@ -230,7 +233,7 @@ export default function CourseClient() {
                             <button
                                 onClick={handleCreateCourse}
                                 disabled={loading}
-                                className="md:col-span-2 mt-4 py-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_rgba(0,0,0,0.3)] group"
+                                className="md:col-span-2 mt-4 py-6 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_rgba(0,0,0,0.3)] group"
                             >
                                 {loading ? (
                                     <>
@@ -271,9 +274,9 @@ export default function CourseClient() {
 
                 {/* 1. Sidebar Navigation */}
                 <div className="lg:col-span-3 border-r border-white/5 bg-slate-900/50 backdrop-blur-xl h-screen sticky top-0 overflow-y-auto custom-scrollbar p-6">
-                    <button onClick={() => router.push("/dashboard")} className="flex items-center gap-3 text-slate-500 hover:text-white mb-10 transition-colors group">
+                    <button onClick={() => router.back()} className="flex items-center gap-3 text-slate-500 hover:text-white mb-10 transition-colors group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em]">Dashboard</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.15em]">Go Back</span>
                     </button>
 
                     <div className="space-y-12">
@@ -287,7 +290,7 @@ export default function CourseClient() {
                             </div>
                             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-1000"
+                                    className="h-full bg-linear-to-r from-blue-500 to-purple-500 transition-all duration-1000"
                                     style={{ width: `${completionPercentage}%` }}
                                 />
                             </div>
@@ -353,7 +356,7 @@ export default function CourseClient() {
 
                             {/* Background Sync Banner */}
                             {(isGenerating || course.generationStatus === 'generating') && (
-                                <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-[2rem] flex items-center gap-6 animate-pulse">
+                                <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-4xl flex items-center gap-6 animate-pulse">
                                     <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400">
                                         <Loader2 className="w-6 h-6 animate-spin" />
                                     </div>
@@ -418,7 +421,7 @@ export default function CourseClient() {
                                             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-3">
                                                 <Code className="w-4 h-4 text-purple-400" /> Professional Implementation
                                             </h3>
-                                            <div className="bg-[#0f1117] border border-white/10 rounded-[2rem] p-8 shadow-2xl relative">
+                                            <div className="bg-[#0f1117] border border-white/10 rounded-4xl p-8 shadow-2xl relative">
                                                 <div className="absolute top-4 right-6 flex gap-2">
                                                     <div className="w-3 h-3 bg-red-500/50 rounded-full" />
                                                     <div className="w-3 h-3 bg-yellow-500/50 rounded-full" />
@@ -481,7 +484,7 @@ export default function CourseClient() {
                                             onClick={() => toggleLessonStatus(currentLesson.id, currentLesson.isCompleted)}
                                             className={`px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3 ${currentLesson.isCompleted
                                                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                                : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
+                                                : 'bg-linear-to-r from-green-600 to-emerald-600 text-white'
                                                 }`}
                                         >
                                             <CheckCircle2 className={`w-5 h-5 ${currentLesson.isCompleted ? 'text-emerald-400' : ''}`} />

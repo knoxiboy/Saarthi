@@ -167,12 +167,12 @@ export default function MockInterviewDashboard() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <Link href="/ai-tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
+                        <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
                             <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
-                            Back to Features
-                        </Link>
+                            Go Back
+                        </button>
                         <h1 className="text-4xl lg:text-5xl font-black uppercase tracking-tight flex items-center gap-4">
-                            AI Mock <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">Interview</span>
+                            AI Mock <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-cyan-400">Interview</span>
                         </h1>
                         <p className="text-slate-400 mt-4 text-lg max-w-2xl font-medium">
                             Practice real-world technical interviews with a hyper-realistic voice AI. Get immediate feedback, scores, and track your progress.
@@ -183,7 +183,7 @@ export default function MockInterviewDashboard() {
                 {/* Main Action Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Resume Based Card */}
-                    <div className="bg-gradient-to-br from-white/5 to-white/5 border border-white/10 p-8 rounded-[2.5rem] relative overflow-hidden group hover:border-purple-500/30 transition-colors">
+                    <div className="bg-linear-to-br from-white/5 to-white/5 border border-white/10 p-8 rounded-[2.5rem] relative overflow-hidden group hover:border-purple-500/30 transition-colors">
                         <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
                             <BrainCircuit className="w-24 h-24 text-purple-400" />
                         </div>
@@ -206,7 +206,7 @@ export default function MockInterviewDashboard() {
                     </div>
 
                     {/* Custom Interview Card */}
-                    <div className="bg-gradient-to-br from-white/5 to-white/5 border border-white/10 p-8 rounded-[2.5rem] relative overflow-hidden group hover:border-cyan-500/30 transition-colors">
+                    <div className="bg-linear-to-br from-white/5 to-white/5 border border-white/10 p-8 rounded-[2.5rem] relative overflow-hidden group hover:border-cyan-500/30 transition-colors">
                         <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
                             <Mic className="w-24 h-24 text-cyan-400" />
                         </div>
@@ -367,7 +367,7 @@ export default function MockInterviewDashboard() {
 
             {/* Premium Confirmation Modal */}
             {confirmModal.isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -378,7 +378,7 @@ export default function MockInterviewDashboard() {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        className="bg-slate-900 border border-white/10 w-full max-w-sm rounded-[2rem] p-8 relative z-10 overflow-hidden shadow-2xl shadow-red-500/10"
+                        className="bg-slate-900 border border-white/10 w-full max-w-sm rounded-4xl p-8 relative z-10 overflow-hidden shadow-2xl shadow-red-500/10"
                     >
                         {/* Decorative background for danger */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 blur-3xl rounded-full -mr-16 -mt-16" />

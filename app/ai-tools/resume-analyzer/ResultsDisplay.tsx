@@ -73,14 +73,14 @@ export default function ResultsDisplay({ result, onReset, onDownload }: ResultsD
                     <div className="flex flex-col sm:flex-row gap-4 w-full relative z-10">
                         <button
                             onClick={onDownload}
-                            className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg text-[10px] uppercase tracking-widest font-black"
+                            className="flex-1 py-4 bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg text-[10px] uppercase tracking-widest font-black"
                         >
                             <Download className="w-4 h-4" />
                             Download Detailed PDF Report
                         </button>
                         <button
                             onClick={onReset}
-                            className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm font-bold transition-all text-white text-[10px] uppercase tracking-widest font-black"
+                            className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all text-white text-[10px] uppercase tracking-widest font-black"
                         >
                             Analyze Another Resume
                         </button>
@@ -88,9 +88,28 @@ export default function ResultsDisplay({ result, onReset, onDownload }: ResultsD
                 </div>
 
                 {/* Main Details Section */}
-                <div className="space-y-6 w-full text-left">
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: { opacity: 0 },
+                        visible: {
+                            opacity: 1,
+                            transition: {
+                                staggerChildren: 0.1
+                            }
+                        }
+                    }}
+                    className="space-y-6 w-full text-left"
+                >
                     {/* Breakdown */}
-                    <div className="bg-white/5 rounded-[2.5rem] p-8 border border-white/10 backdrop-blur-xl shadow-2xl">
+                    <motion.div
+                        variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 }
+                        }}
+                        className="bg-white/5 rounded-[2.5rem] p-8 border border-white/10 backdrop-blur-xl shadow-2xl"
+                    >
                         <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tight">Score Breakdown</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                             {Object.entries(result.scoreBreakdown).map(([key, val]) => (
@@ -100,10 +119,16 @@ export default function ResultsDisplay({ result, onReset, onDownload }: ResultsD
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Gaps and Strengths */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div
+                        variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 }
+                        }}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                    >
                         <div className="bg-red-500/5 rounded-[2.5rem] p-8 border border-red-500/10 backdrop-blur-xl">
                             <h3 className="text-lg font-black text-red-400 mb-6 uppercase tracking-tight flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -132,7 +157,7 @@ export default function ResultsDisplay({ result, onReset, onDownload }: ResultsD
                                 ))}
                             </ul>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Detailed Section Analysis */}
                     {result.sectionwiseAnalysis && (
@@ -260,7 +285,7 @@ export default function ResultsDisplay({ result, onReset, onDownload }: ResultsD
                             </div>
                         </div>
                     )}
-                </div>
+                </motion.div>
             </div>
         </div>
     )

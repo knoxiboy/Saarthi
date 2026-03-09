@@ -218,9 +218,13 @@ export default function ResumeClient() {
             <div className="max-w-[1920px] mx-auto px-10 py-8 border-b border-white/5 relative z-10 text-left">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
-                        <Link href="/ai-tools" className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all group" title="Back to Features">
+                        <button
+                            onClick={() => router.back()}
+                            className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all group"
+                            title="Go Back"
+                        >
                             <ArrowLeft className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:-translate-x-1 transition-all" />
-                        </Link>
+                        </button>
                         <div>
                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-2">
                                 Resume Builder
