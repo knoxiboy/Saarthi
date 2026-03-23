@@ -10,7 +10,12 @@ export const metadata: Metadata = {
 }
 
 export default async function DashboardPage() {
-    const user = await currentUser();
+    let user = null;
+    try {
+        user = await currentUser();
+    } catch (error) {
+        console.error("Clerk currentUser error:", error);
+    }
     const userEmail = user?.primaryEmailAddress?.emailAddress;
 
     if (!userEmail) {

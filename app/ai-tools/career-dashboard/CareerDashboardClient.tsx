@@ -40,7 +40,7 @@ export default function CareerDashboardClient({ profileData }: CareerDashboardCl
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
                     <div className="flex items-center gap-6">
                         <button
-                            onClick={() => router.back()}
+                            onClick={() => router.push("/ai-tools")}
                             className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-slate-400 hover:text-white"
                         >
                             <ArrowLeft className="w-5 h-5" />

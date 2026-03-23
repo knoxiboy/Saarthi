@@ -6,6 +6,44 @@ import { db } from "../db/db";
 import { aiResponsesCacheTable } from "../db/schema";
 import { eq } from "drizzle-orm";
 
+/**
+ * Extracts JSON content from a text string that might contain markdown blocks.
+ * Uses greedy match to avoid truncating nested code blocks (like Python examples inside the JSON).
+ */
+function extractJsonFromMarkdown(text: string): string {
+    let cleanText = text;
+    // Strip markdown code blocks if they exist. Match any language identifier (e.g., json, python, bash)
+    const match = text.match(/```[a-zA-Z]*\s*([\s\S]*)\s*```/i);
+    if (match) {
+        cleanText = match[1];
+    }
+
+    cleanText = cleanText.trim();
+
+    // Find the first '{' or '[' and extract up to the last '}' or ']'
+    const firstBrace = cleanText.indexOf('{');
+    const firstBracket = cleanText.indexOf('[');
+
+    let startIdx = -1;
+    if (firstBrace !== -1 && firstBracket !== -1) {
+        startIdx = Math.min(firstBrace, firstBracket);
+    } else if (firstBrace !== -1) {
+        startIdx = firstBrace;
+    } else if (firstBracket !== -1) {
+        startIdx = firstBracket;
+    }
+
+    if (startIdx !== -1) {
+        const isObject = cleanText[startIdx] === '{';
+        const endIdx = isObject ? cleanText.lastIndexOf('}') : cleanText.lastIndexOf(']');
+        if (endIdx > startIdx) {
+            cleanText = cleanText.substring(startIdx, endIdx + 1);
+        }
+    }
+
+    return cleanText;
+}
+
 // Zod Schemas for Validation
 const CourseOutlineSchema = z.object({
     courseTitle: z.string(),
@@ -149,7 +187,8 @@ export async function generateCourseOutline(topic: string, level: string, durati
 
         let parsed;
         try {
-            parsed = JSON.parse(raw);
+            const cleanRaw = extractJsonFromMarkdown(raw);
+            parsed = JSON.parse(cleanRaw);
         } catch (e) {
             console.error("[BEDROCK] JSON Parse Failed:", raw);
             throw new Error("AI returned invalid JSON structure");
@@ -212,6 +251,10 @@ export async function generateLessonContent(lessonTitle: string, focus: string, 
     - exercise (A challenging mini-project task)
     - interviewQuestions (10 highly relevant, scenario-based Q&A)
 
+    CRITICAL RULES FOR JSON:
+    1. The ENTIRE response must be a single, valid JSON object. Do NOT wrap it in Markdown or return raw code.
+    2. Any code snippets inside "codeExample" or "explanation" MUST be properly escaped as a single JSON line (use \\n for newlines, escape internal quotes).
+
     JSON Format (strictly follow this and ensure the response is a complete, valid JSON object):
     {
       "explanation": "...",
@@ -226,7 +269,8 @@ export async function generateLessonContent(lessonTitle: string, focus: string, 
     while (attempt < 2) {
         try {
             const raw = await callGroqPremium(MODELS.PRIMARY, systemPrompt, userPrompt);
-            const parsed = LessonContentSchema.parse(JSON.parse(raw));
+            const cleanRaw = extractJsonFromMarkdown(raw);
+            const parsed = LessonContentSchema.parse(JSON.parse(cleanRaw));
 
             // Basic word count enforcement
             const wordCount = parsed.explanation.split(/\s+/).length;
@@ -271,7 +315,8 @@ export async function generateQuiz(content: string) {
 
     try {
         const raw = await callGroqPremium(MODELS.QUIZ, systemPrompt, userPrompt);
-        return QuizSchema.parse(JSON.parse(raw));
+        const cleanRaw = extractJsonFromMarkdown(raw);
+        return QuizSchema.parse(JSON.parse(cleanRaw));
     } catch (error) {
         console.error("Quiz Generation Failed:", error);
         return { questions: [] }; // Graceful failure

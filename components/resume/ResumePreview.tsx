@@ -7,16 +7,53 @@ interface ResumePreviewProps {
 }
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
-    const { personalInfo, education, experience, skills, projects, honors, customSections } = data;
+    const { personalInfo, education, experience, skills, projects, honors, customSections, template } = data;
 
     const cleanUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 
+    // Template specific styling maps
+    const getTemplateClasses = () => {
+        switch (template) {
+            case "creative":
+                return {
+                    container: "font-sans bg-white",
+                    headerBorder: "border-blue-500",
+                    nameText: "text-blue-700 tracking-tighter",
+                    sectionDivider: "border-blue-200 text-blue-800",
+                };
+            case "executive":
+                return {
+                    container: "font-serif bg-slate-50",
+                    headerBorder: "border-slate-800 border-b-4",
+                    nameText: "text-slate-900 tracking-widest",
+                    sectionDivider: "border-slate-400 text-slate-900",
+                };
+            case "academic":
+                return {
+                    container: "font-serif bg-white",
+                    headerBorder: "border-slate-300",
+                    nameText: "text-slate-800 font-normal tracking-tight",
+                    sectionDivider: "border-slate-200 text-slate-700 font-medium",
+                };
+            case "corporate":
+            default:
+                return {
+                    container: "font-serif bg-white",
+                    headerBorder: "border-slate-950",
+                    nameText: "text-slate-950",
+                    sectionDivider: "border-slate-900 text-slate-900",
+                };
+        }
+    };
+
+    const styles = getTemplateClasses();
+
     return (
         <div className="w-full h-full p-4 flex justify-center overflow-auto custom-scrollbar">
-            <div className="w-[210mm] min-h-[297mm] bg-white text-slate-900 shadow-2xl origin-top scale-[0.6] sm:scale-[0.7] md:scale-[0.8] lg:scale-[0.9] xl:scale-100 transition-transform p-[15mm] font-serif">
+            <div className={`w-[210mm] min-h-[297mm] text-slate-900 shadow-2xl origin-top scale-[0.6] sm:scale-[0.7] md:scale-[0.8] lg:scale-[0.9] xl:scale-100 transition-all duration-500 p-[15mm] ${styles.container}`}>
                 {/* Header */}
-                <header className="text-center mb-6 border-b-[2.5px] border-slate-950 pb-5 font-serif">
-                    <h1 className="text-4xl font-black uppercase tracking-tight mb-5 text-slate-950">
+                <header className={`text-center mb-6 border-b-[2.5px] pb-5 ${styles.headerBorder}`}>
+                    <h1 className={`text-4xl font-black uppercase mb-5 transition-colors ${styles.nameText}`}>
                         {personalInfo.fullName || "Your Full Name"}
                     </h1>
 
@@ -56,7 +93,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
                 {/* Summary */}
                 {personalInfo.summary && (
                     <section className="mb-4">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest mb-2 border-b-[1.5px] border-slate-900 pb-1 text-slate-900">Summary</h2>
+                        <h2 className={`text-[11px] font-black uppercase tracking-widest mb-2 border-b-[1.5px] pb-1 transition-colors ${styles.sectionDivider}`}>Summary</h2>
                         <p className="text-[11px] leading-snug text-slate-700 whitespace-pre-wrap">
                             {personalInfo.summary}
                         </p>
@@ -66,7 +103,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
                 {/* Experience */}
                 {experience.length > 0 && (
                     <section className="mb-4">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] border-slate-900 pb-1 text-slate-900">Professional Experience</h2>
+                        <h2 className={`text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] pb-1 transition-colors ${styles.sectionDivider}`}>Professional Experience</h2>
                         <div className="space-y-4">
                             {experience.map((exp, idx) => (
                                 <div key={idx} className={`${idx > 0 ? "pt-3 border-t border-slate-100" : ""}`}>
@@ -94,7 +131,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
                 {/* Projects */}
                 {projects.length > 0 && (
                     <section className="mb-4">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] border-slate-900 pb-1 text-slate-900">Strategic Projects</h2>
+                        <h2 className={`text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] pb-1 transition-colors ${styles.sectionDivider}`}>Strategic Projects</h2>
                         <div className="space-y-4">
                             {projects.map((project, idx) => (
                                 <div key={idx} className={`${idx > 0 ? "pt-3 border-t border-slate-100" : ""}`}>
@@ -132,7 +169,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
                 {/* Education */}
                 {education.length > 0 && (
                     <section className="mb-4">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] border-slate-900 pb-1 text-slate-900">Education</h2>
+                        <h2 className={`text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] pb-1 transition-colors ${styles.sectionDivider}`}>Education</h2>
                         <div className="space-y-3">
                             {education.map((edu, idx) => (
                                 <div key={idx} className="">
@@ -153,7 +190,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
                 {/* Skills */}
                 {skills.length > 0 && (
                     <section className="mb-4">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] border-slate-900 pb-1 text-slate-900">Technical Skills</h2>
+                        <h2 className={`text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] pb-1 transition-colors ${styles.sectionDivider}`}>Technical Skills</h2>
                         <div className="space-y-2.5">
                             {skills.map((skill, idx) => (
                                 <div key={idx} className="flex items-start">
@@ -168,7 +205,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
                 {/* Custom Sections */}
                 {customSections && customSections.length > 0 && customSections.map((section, sIdx) => (
                     <section key={section.id || sIdx} className="mb-4">
-                        <h2 className="text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] border-slate-900 pb-1 text-slate-900">{section.title}</h2>
+                        <h2 className={`text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] pb-1 transition-colors ${styles.sectionDivider}`}>{section.title}</h2>
                         <div className="space-y-4">
                             {section.items.map((item, iIdx) => (
                                 <div key={iIdx} className="">
@@ -201,7 +238,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
                 {/* Honors */}
                 {honors && honors.length > 0 && honors.some(h => h) && (
                     <section>
-                        <h2 className="text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] border-slate-900 pb-1 text-slate-900">Honors & Awards</h2>
+                        <h2 className={`text-[11px] font-black uppercase tracking-widest mb-3 border-b-[1.5px] pb-1 transition-colors ${styles.sectionDivider}`}>Honors & Awards</h2>
                         <div className="space-y-2.5">
                             {honors.filter(h => h).map((honor, idx) => (
                                 <div key={idx} className="flex items-start gap-3">

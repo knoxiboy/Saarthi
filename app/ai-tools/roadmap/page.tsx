@@ -37,7 +37,7 @@ export default async function RoadmapPage() {
         <div className="min-h-screen bg-slate-950">
             {/* Header */}
             <div className="max-w-7xl mx-auto px-6 py-8">
-                <BackButton />
+                <BackButton href="/ai-tools" label="Back to Hub" />
 
                 <div className="max-w-3xl">
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">

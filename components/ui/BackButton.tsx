@@ -6,14 +6,15 @@ import { ArrowLeft } from "lucide-react"
 interface BackButtonProps {
     label?: string;
     className?: string;
+    href?: string;
 }
 
-export function BackButton({ label = "Go Back", className = "" }: BackButtonProps) {
+export function BackButton({ label = "Go Back", className = "", href }: BackButtonProps) {
     const router = useRouter()
 
     return (
         <button
-            onClick={() => router.back()}
+            onClick={() => href ? router.push(href) : router.back()}
             className={`inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors group ${className}`}
         >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

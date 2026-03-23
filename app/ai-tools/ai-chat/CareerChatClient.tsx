@@ -330,9 +330,9 @@ export default function CareerChatClient() {
             <div className="max-w-7xl mx-auto px-6 py-8 w-full">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/5 pb-5">
                     <div className="flex items-center justify-between w-full">
-                        <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-0 group">
+                        <button onClick={() => router.push("/ai-tools")} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-0 group">
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                            <span className="text-sm font-medium">Back to Features</span>
+                            <span className="text-sm font-medium">Back to Hub</span>
                         </button>
 
                         <div className="flex items-center gap-3">

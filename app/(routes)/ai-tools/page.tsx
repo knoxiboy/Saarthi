@@ -89,7 +89,7 @@ export default function AiToolsHub() {
         <div className="p-8 lg:p-16 space-y-12 lg:space-y-16 max-w-7xl mx-auto">
             <div className="border-b border-white/5 pb-12 mb-12">
                 <div className="space-y-4">
-                    <BackButton className="mb-4" />
+                    <BackButton href="/dashboard" label="Back to Dashboard" className="mb-4" />
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest leading-none">
                         <Wrench className="w-3 h-3" />
                         Core Workspace

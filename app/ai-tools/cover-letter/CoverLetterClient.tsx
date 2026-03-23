@@ -125,9 +125,9 @@ export default function CoverLetterClient() {
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                 <div className="space-y-2">
-                    <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-4 group">
+                    <button onClick={() => router.push("/ai-tools")} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-4 group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-xs font-black uppercase tracking-widest">Back to Features</span>
+                        <span className="text-xs font-black uppercase tracking-widest">Back to Hub</span>
                     </button>
                     <div className="flex flex-col">
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 w-fit">

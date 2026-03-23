@@ -339,9 +339,9 @@ export default function WritingClient() {
             <div className="min-h-screen bg-[#020617] text-white py-4 md:py-6 lg:py-8 px-8 md:px-16 lg:px-24 selection:bg-blue-500/30">
                 <div className="max-w-7xl mx-auto space-y-8">
                     <div className="space-y-4">
-                        <button onClick={() => router.back()} className="inline-flex items-center gap-2.5 text-slate-500 hover:text-white transition-all group font-bold text-[10px] uppercase tracking-[0.2em] bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                        <button onClick={() => router.push("/ai-tools")} className="inline-flex items-center gap-2.5 text-slate-500 hover:text-white transition-all group font-bold text-[10px] uppercase tracking-[0.2em] bg-white/5 px-4 py-2 rounded-full border border-white/5">
                             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-                            <span>Back to Features</span>
+                            <span>Back to Hub</span>
                         </button>
                         <div className="space-y-4">
                             <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight leading-[0.9]">
@@ -353,7 +353,15 @@ export default function WritingClient() {
                             </p>
                         </div>
                     </div>
-                    <WritingHub docTypes={docTypes} onSelect={(id) => { setSelectedDoc(id as DocType); setView("studio"); }} />
+                    <WritingHub docTypes={docTypes} onSelect={(id) => {
+                        setSelectedDoc(id as DocType);
+                        setView("studio");
+                        setContext("");
+                        setUserDetails("");
+                        setOutput("");
+                        setCopied(false);
+                        setTab("generate");
+                    }} />
                 </div>
             </div>
         )

@@ -167,9 +167,9 @@ export default function MockInterviewDashboard() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
+                        <button onClick={() => router.push("/ai-tools")} className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group">
                             <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
-                            Go Back
+                            Go Back to Hub
                         </button>
                         <h1 className="text-4xl lg:text-5xl font-black uppercase tracking-tight flex items-center gap-4">
                             AI Mock <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-cyan-400">Interview</span>

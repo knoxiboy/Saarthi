@@ -28,8 +28,8 @@ import { RoadmapSkeleton } from "@/components/ToolSkeletons"
 import {
     createCourseAction,
     getCourseDetails,
-    generateCourseContentAction,
-    updateLessonProgress
+    updateLessonProgress,
+    generateSingleLessonAction
 } from "@/app/actions/courseActions"
 
 // --- Constants ---
@@ -54,6 +54,46 @@ export default function CourseClient() {
     const [goal, setGoal] = useState("Industry Mastery")
     const [duration, setDuration] = useState("4 Weeks")
 
+    // --- On-Demand Lesson Generation ---
+    const generateLessonIfNeeded = useCallback(async (moduleIndex: number, lessonIndex: number) => {
+        if (!course) return;
+        const targetModule = course.modules[moduleIndex];
+        const targetLesson = targetModule?.lessons[lessonIndex];
+
+        if (!targetLesson || targetLesson.explanation) return; // Already generated
+
+        setIsGenerating(true);
+        try {
+            const res = await generateSingleLessonAction(course.id, targetLesson.id);
+            if (res.success && res.lesson) {
+                // Optimistically update the local state so UI updates instantly
+                setCourse((prev: any) => {
+                    const newCourse = { ...prev };
+                    newCourse.modules[moduleIndex].lessons[lessonIndex] = {
+                        ...targetLesson,
+                        ...res.lesson
+                    };
+                    return newCourse;
+                });
+
+                // Fire-and-forget background prefetch for the *next* sequential lesson
+                if (lessonIndex + 1 < targetModule.lessons.length) {
+                    generateSingleLessonAction(course.id, targetModule.lessons[lessonIndex + 1].id).catch(() => { });
+                } else if (moduleIndex + 1 < course.modules.length) {
+                    generateSingleLessonAction(course.id, course.modules[moduleIndex + 1].lessons[0].id).catch(() => { });
+                }
+
+            } else {
+                toast.error("Failed to generate this lesson.");
+            }
+        } catch (err) {
+            console.error("Single Lesson Gen Error:", err);
+            toast.error("Generation error.");
+        } finally {
+            setIsGenerating(false);
+        }
+    }, [course]);
+
     // --- Sync Logic ---
     useEffect(() => {
         if (!courseId) {
@@ -67,10 +107,6 @@ export default function CourseClient() {
                 const data = await getCourseDetails(Number(courseId))
                 if (data) {
                     setCourse(data)
-                    // If course is still generating, trigger the background worker
-                    if (data.generationStatus === "generating") {
-                        triggerBackgroundSync(data.id)
-                    }
                 }
             } catch (err) {
                 toast.error("Failed to load course")
@@ -82,22 +118,13 @@ export default function CourseClient() {
         fetchAndSync()
     }, [courseId])
 
-    const triggerBackgroundSync = async (id: number) => {
-        setIsGenerating(true)
-        try {
-            const res = await generateCourseContentAction(id)
-            if (res.success) {
-                // Refresh data once done
-                const finalData = await getCourseDetails(id)
-                setCourse(finalData)
-                toast.success("All lessons generated successfully!")
-            }
-        } catch (err) {
-            console.error("Background Sync Failed:", err)
-        } finally {
-            setIsGenerating(false)
+    // Watch for active lesson changes to generate on-demand
+    useEffect(() => {
+        if (course) {
+            generateLessonIfNeeded(activeModule, activeLesson);
         }
-    }
+    }, [activeModule, activeLesson, course?.id]); // Note: excluding generateLessonIfNeeded intentionally to avoid loops, watching course id is enough
+
 
     // --- Handlers ---
     const handleCreateCourse = async () => {
@@ -139,11 +166,11 @@ export default function CourseClient() {
                 {/* Back to Dashboard Button */}
                 <div className="absolute top-8 left-8 sm:top-12 sm:left-12 z-50">
                     <button
-                        onClick={() => router.back()}
+                        onClick={() => router.push("/ai-tools")}
                         className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-8 group"
                     >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-sm font-medium">Go Back</span>
+                        <span className="text-sm font-medium">Back to Hub</span>
                     </button>
                 </div>
 
@@ -274,9 +301,9 @@ export default function CourseClient() {
 
                 {/* 1. Sidebar Navigation */}
                 <div className="lg:col-span-3 border-r border-white/5 bg-slate-900/50 backdrop-blur-xl h-screen sticky top-0 overflow-y-auto custom-scrollbar p-6">
-                    <button onClick={() => router.back()} className="flex items-center gap-3 text-slate-500 hover:text-white mb-10 transition-colors group">
+                    <button onClick={() => router.replace("/ai-tools/course")} className="flex items-center gap-3 text-slate-500 hover:text-white mb-10 transition-colors group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em]">Go Back</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.15em]">Exit Course</span>
                     </button>
 
                     <div className="space-y-12">
@@ -316,7 +343,17 @@ export default function CourseClient() {
                                                 className={`w-full text-left p-3.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between group ${activeModule === mIdx && activeLesson === lIdx ? "bg-white text-black shadow-xl" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
                                             >
                                                 <span className="truncate pr-4">{l.title}</span>
-                                                {l.isCompleted ? <CheckCircle2 className="w-3 h-3 text-green-500" /> : <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    {isGenerating && activeModule === mIdx && activeLesson === lIdx ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
+                                                    ) : l.isCompleted ? (
+                                                        <CheckCircle2 className="w-3 h-3 text-green-500" />
+                                                    ) : l.explanation ? (
+                                                        <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    ) : (
+                                                        <Sparkles className="w-3 h-3 text-blue-500/40 opacity-50 group-hover:opacity-100" />
+                                                    )}
+                                                </div>
                                             </button>
                                         ))}
                                     </div>
@@ -355,14 +392,14 @@ export default function CourseClient() {
                             </div>
 
                             {/* Background Sync Banner */}
-                            {(isGenerating || course.generationStatus === 'generating') && (
+                            {isGenerating && !currentLesson?.explanation && (
                                 <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-4xl flex items-center gap-6 animate-pulse">
                                     <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400">
                                         <Loader2 className="w-6 h-6 animate-spin" />
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-sm font-black uppercase tracking-widest">Synthesizing Deep Content...</p>
-                                        <p className="text-[10px] text-blue-400/60 font-bold uppercase tracking-widest">The AI engine is generating high-depth explanations and projects in the background.</p>
+                                        <p className="text-sm font-black uppercase tracking-widest">Synthesizing Detailed Slide...</p>
+                                        <p className="text-[10px] text-blue-400/60 font-bold uppercase tracking-widest">The engine is generating the explanation, finding a matching YouTube video, and crafting quiz questions on the fly!</p>
                                     </div>
                                 </div>
                             )}

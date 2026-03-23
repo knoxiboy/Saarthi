@@ -396,10 +396,10 @@ export default function InterviewRoomPage() {
                                 View Final Report
                             </button>
                             <button
-                                onClick={() => router.push("/ai-tools/mock-interview")}
+                                onClick={() => router.replace("/ai-tools/mock-interview")}
                                 className="px-8 py-3 text-slate-400 hover:text-white font-bold uppercase tracking-widest text-[10px] transition-colors"
                             >
-                                Return to Dashboard
+                                Return to Tool Home
                             </button>
                         </div>
                     </motion.div>

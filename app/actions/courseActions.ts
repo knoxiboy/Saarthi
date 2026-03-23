@@ -87,26 +87,27 @@ export async function createCourseAction(
         const userEmail = user.primaryEmailAddress.emailAddress;
 
         // Ensure strings are safe
-        const safeTopic = topic?.trim() || "Technology Masterclass";
-        const safeLevel = level?.trim() || "Intermediate";
-        const safeDuration = duration?.trim() || "4 Weeks";
-        const safeGoal = goalType?.trim() || "Mastery";
+        const topicStr = safeTopic?.trim() || "Technology Masterclass";
+        const levelStr = safeLevel?.trim() || "Intermediate";
+        const durationStr = safeDuration?.trim() || "4 Weeks";
+        const goalStr = safeGoal?.trim() || "Mastery";
 
         // 0. Caching Check
         // Note: For simplicity, we check if a course with similar title/level/user exists.
         // A full hash-based cache could be implemented in a 'course_cache' table if needed.
 
         // 1. Generate Course Outline using Llama 3.3 70B
-        console.log(`[COURSE_ACTION] Generating outline for: ${safeTopic} (${safeLevel})`);
-        const outline = await generateCourseOutline(safeTopic, safeLevel, safeDuration, safeGoal);
+        console.log(`[COURSE_ACTION] Generating outline for: ${topicStr} (${levelStr})`);
+        const outline = await generateCourseOutline(topicStr, levelStr, durationStr, goalStr);
 
-        // 2. Insert Parent Course (Status: generating)
+        // 2. Save Course Skeleton to DB
+        console.log("[COURSE_ACTION] Saving skeleton to DB...");
         const [insertedCourse] = await db.insert(coursesTable).values({
             userEmail,
             title: outline.courseTitle,
-            level: safeLevel,
-            duration: safeDuration,
-            goalType: safeGoal,
+            level: levelStr,
+            duration: durationStr,
+            goalType: goalStr,
             description: outline.description,
             outcomes: JSON.stringify(outline.learningOutcomes),
             capstoneProject: outline.capstoneProject,
@@ -128,47 +129,108 @@ export async function createCourseAction(
                 order: mIdx + 1
             }).returning();
 
-            for (let lIdx = 0; lIdx < m.lessons.length; lIdx++) {
-                const l = m.lessons[lIdx];
-                await db.insert(courseLessonsTable).values({
+            if (m.lessons && m.lessons.length > 0) {
+                const lessonsToInsert = m.lessons.map((l, lIdx) => ({
                     moduleId: mod.id,
                     title: l.title,
-                    depthLevel: level,
-                    content: l.focus, // Temporary focus as content
+                    depthLevel: levelStr,
+                    content: l.focus || "Content pending...",
                     takeaways: "[]",
                     order: lIdx + 1
-                });
+                }));
+                await db.insert(courseLessonsTable).values(lessonsToInsert);
             }
         }
 
-        // 4. Trigger Background Generation via Inngest
-        await inngest.send({
-            name: "course/generate.content",
-            data: { courseId }
-        });
+        // 4. Background generation is now handled via Client-side streaming in CourseClient.tsx
+        // try {
+        //     await inngest.send({
+        //         name: "course/generate.content",
+        //         data: { courseId }
+        //     });
+        // } catch (inngestError) {
+        //     console.error("[COURSE_ACTION] Warning: Failed to trigger Inngest. Ensure Inngest is running locally or configured:", inngestError);
+        // }
 
         return { success: true, courseId };
 
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("[COURSE_ACTION] Error in createCourseAction:", error);
-        return { success: false, error: error instanceof Error ? error.message : "An unknown error occurred" };
+        console.error("Error code:", error.code);
+        console.error("Error detail:", error.detail);
+        return {
+            success: false,
+            error: error.message,
+            code: error.code,
+            detail: error.detail
+        };
     }
 }
 
-/**
- * STEP 2: Background Generation - Detailed Lesson Content
- * To be triggered by the frontend or an edge worker after redirect.
- */
-export async function generateCourseContentAction(courseId: number) {
+export async function generateSingleLessonAction(courseId: number, lessonId: number) {
     try {
-        await inngest.send({
-            name: "course/generate.content",
-            data: { courseId }
+        const user = await currentUser();
+        if (!user || !user.primaryEmailAddress?.emailAddress) {
+            throw new Error("User not authenticated");
+        }
+
+        // Fetch course schema safely
+        const course = await db.query.coursesTable.findFirst({
+            where: eq(coursesTable.id, courseId),
+            with: { modules: { with: { lessons: true } } }
         });
-        return { success: true };
-    } catch (error: unknown) {
-        console.error("[COURSE_ACTION] Inngest Trigger Error:", error);
-        return { success: false, error: error instanceof Error ? error.message : "An unknown error occurred" };
+
+        if (!course) throw new Error("Course not found");
+
+        const targetLesson = course.modules
+            .flatMap(m => m.lessons)
+            .find(l => l.id === lessonId);
+
+        if (!targetLesson) throw new Error("Lesson not found");
+
+        // If it's already generated (i.e. has explanation), skip and return success
+        if (targetLesson.explanation) {
+            return { success: true, lesson: targetLesson };
+        }
+
+        // 1. Generate Deep Content
+        const content = await generateLessonContent(
+            targetLesson.title,
+            targetLesson.content || "",
+            course.level || "Intermediate",
+            course.goalType || "Mastery"
+        );
+
+        // 2. Generate Quiz
+        const quiz = await generateQuiz(content.explanation);
+
+        // 3. Smart YouTube Search
+        const videoCandidates = await searchYoutubeVideos(
+            targetLesson.title,
+            course.title,
+            course.level || "Intermediate"
+        );
+        const rankedVideoId = await rankYouTubeVideos(videoCandidates, course.level || "Intermediate");
+        const bestVideo = videoCandidates.find(v => v.videoId === rankedVideoId) || videoCandidates[0];
+
+        // 4. Update DB
+        const [updatedLesson] = await db.update(courseLessonsTable).set({
+            explanation: content.explanation,
+            content: content.explanation,
+            realWorldExample: content.realWorldExample,
+            codeExample: content.codeExample,
+            commonMistakes: JSON.stringify(content.commonMistakes),
+            exercise: content.exercise,
+            interviewQuestions: JSON.stringify(content.interviewQuestions),
+            quiz: JSON.stringify(quiz),
+            videoUrl: bestVideo ? `https://www.youtube.com/watch?v=${bestVideo.videoId}` : null,
+            videoTitle: bestVideo?.title || ""
+        }).where(eq(courseLessonsTable.id, lessonId)).returning();
+
+        return { success: true, lesson: updatedLesson };
+    } catch (error: any) {
+        console.error("[COURSE_ACTION] Generate Lesson Error:", error);
+        return { success: false, error: error.message || "Failed to generate lesson content" };
     }
 }
 
