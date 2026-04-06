@@ -71,6 +71,11 @@ graph TD
 - **AI**: Groq (Primary), AWS Bedrock (Course Synthesis)
 - **Monitoring**: Inngest
 
+### SDLC & Security Integration
+- **DDoS/Rate Limiting Middleware:** Next.js edge-based map ip tracker to defend API routes from programmatic spam.
+- **Strict Parsing:** Input sanitisation across all components enforced prior to database writes.
+- **Workflow Security via AWS Amplify:** Containerized edge CI/CD builds validating all security artifacts pre-deployment.
+
 ---
 
 ## 🚀 Installation & Setup

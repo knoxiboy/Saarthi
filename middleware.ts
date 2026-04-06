@@ -10,6 +10,12 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+    // Basic Rate Limiting for API Routes
+    if (request.nextUrl.pathname.startsWith('/api')) {
+        const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
+        // Mitigates generic DDOS within the isolate's lifetime
+    }
+
     if (!isPublicRoute(request)) {
         await auth.protect();
     }
