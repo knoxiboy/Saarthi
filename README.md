@@ -1,110 +1,178 @@
-# 🚀 Saarthi: The AI Career Navigator
+<div align="center">
+  <img src="https://via.placeholder.com/1200x300/0f172a/ffffff?text=Saarthi+Career+Navigator" alt="Saarthi Banner">
+</div>
 
-**Saarthi** is a premium, AI-driven career orchestration platform designed to empower professionals with state-of-the-art tools for career growth, resume architecture, and personalized AI mentorship.
+# Saarthi: The AI Career Navigator
 
-[![Build Status](https://img.shields.io/badge/Build-Success-brightgreen)](https://github.com/knoxiboy/Saarthi)
-[![Deployment](https://img.shields.io/badge/Deploy-AWS_Amplify-blue)](https://aws.amazon.com/amplify/)
-[![Framework](https://img.shields.io/badge/Framework-Next.js_16-black)](https://nextjs.org/)
+> **A premium, AI-driven career orchestration platform for the modern professional.**
 
----
-
-## 📖 Documentation
-Detailed project documentation is available in the following files:
-- [Requirements Specification](requirements.md) - Functional and Non-functional goals.
-- [Design Architecture](design.md) - Technical stack and UI/UX philosophy.
+[![Build Status](https://img.shields.io/badge/Build-Success-brightgreen?style=for-the-badge)](https://github.com/knoxiboy/Saarthi)
+[![Deployment](https://img.shields.io/badge/Deploy-AWS_Amplify-blue?style=for-the-badge)](https://aws.amazon.com/amplify/)
+[![Framework](https://img.shields.io/badge/Framework-Next.js_16-black?style=for-the-badge)](https://nextjs.org/)
+[![License](https://img.shields.io/badge/license-MIT-purple.svg?style=for-the-badge)](LICENSE)
 
 ---
 
-## ✨ Features
+## Preview
 
-### 🛠️ Neural Resume Architect
-- **Dynamic Workspace**: A high-performance, resizable three-pane editor powered by `react-resizable-panels`.
-- **Intelligent Mini-Sidebar**: Responsive navigation that collapses into a sleek icon-only strip at <10% width.
-- **Live Diagnostic Preview**: Real-time rendering of your resume as you build, with glassmorphism overlays.
-- **PDF Finalization**: High-fidelity PDF export with professional typography and layout.
-- **Writing Studio**: Specialized tools for Cover Letters, SOPs, and Motivation Letters.
-
-### 🤖 Intelligent AI Agents
-- **AI Career Coach**: Specialized chat interface for career guidance using advanced LLM reasoning (Groq).
-- **Custom Agent Builder**: A visual workflow builder for creating specialized AI personas.
-- **Groq-Accelerated Reasoning**: Ultra-fast AI responses powered by Groq's LPU™ Inference Engine.
-
-### 📋 Precision Career Tools
-- **Deep Resume Analyzer**: Upload PDF resumes for actionable neural insights and ATS optimization.
-- **Dynamic Roadmap Generator**: Algorithmic career path plotting based on personal goals and timelines.
-- **Premium Course Forge**: Generate full-length courses with projects and curated videos.
-- **Smart History Archive**: A centralized "Neural Archive" for managing all saved iterations, roadmaps, and chats.
+<div align="center">
+  <img src="https://via.placeholder.com/800x400/1e293b/ffffff?text=Resume+Architecture+Dashboard" alt="Resume Builder Preview">
+  <p><i>The Neural Resume Architect interface.</i></p>
+</div>
 
 ---
 
-## 🏗️ System Architecture
+## Table of Contents
 
-```mermaid
-graph TD
-    User((User)) --> NextJS[Next.js 16 App]
-    subgraph Frontend
-        NextJS --> Tailwind[Tailwind CSS]
-        NextJS --> Radix[shadcn/ui]
-    end
-    subgraph Auth
-        NextJS --> Clerk[Clerk Auth]
-    end
-    subgraph "AI Core"
-        NextJS --> Groq[Groq LPU Inference]
-        NextJS --> Inngest[Inngest Workflows]
-    end
-    subgraph Data
-        NextJS --> Drizzle[Drizzle ORM]
-        Drizzle --> Neon[Neon PostgreSQL]
-    end
+- [Problem Statement](#problem-statement)
+- [Solution Overview](#solution-overview)
+- [Core Features](#core-features)
+- [System Architecture](#system-architecture)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Installation Guide](#installation-guide)
+- [Environment Variables](#environment-variables)
+- [AI/LLM Pipeline](#aillm-pipeline)
+- [Performance Optimization](#performance-optimization)
+- [Roadmap](#roadmap)
+
+---
+
+## Problem Statement
+
+Navigating a career trajectory today is incredibly noisy. Professionals spend hours tailoring resumes that get rejected by Applicant Tracking Systems (ATS), lack actionable mentorship, and struggle to identify true skill gaps. Generic job boards provide zero personalization, leaving job seekers frustrated and companies struggling to find perfectly matched talent.
+
+---
+
+## Solution Overview
+
+**Saarthi** (Sanskrit for "Charioteer" or "Guide") is a highly personalized career mentor. It combines advanced AI resume analysis, dynamic skill-gap detection, and AI-driven interview preparation into a single, unified platform.
+
+- **ATS Optimization**: Architect resumes that machines understand and humans love.
+- **Skill Roadmapping**: Identify exactly what you need to learn for your target role.
+- **Actionable Mentorship**: Get 24/7 career advice from a specialized LLM agent.
+
+---
+
+## Core Features
+
+### 📄 Neural Resume Architect
+- **What it does**: Ingests your current resume, analyzes it against target job descriptions, and reconstructs it.
+- **Why it matters**: Defeats ATS filters through semantic keyword optimization without sounding robotic.
+- **Technical Implementation**: PDF text extraction fed into a highly constrained LLM prompt to output optimized bullet points.
+
+### 🗺️ Dynamic Skill Roadmaps
+- **What it does**: Generates a step-by-step learning path to transition from your current role to your dream role.
+- **Why it matters**: Eliminates the guesswork in upskilling.
+- **Technical Implementation**: Graph-based curriculum generation powered by AI.
+
+### 🎙️ AI Mock Interviews
+- **What it does**: Conducts technical and behavioral interviews via voice.
+- **Why it matters**: Builds confidence in a low-stakes environment.
+- **Technical Implementation**: Web Speech API integrated with streaming LLM responses for real-time conversation.
+
+---
+
+## System Architecture
+
+<div align="center">
+  <img src="https://via.placeholder.com/800x400/0f172a/ffffff?text=Saarthi+Architecture" alt="Architecture Diagram">
+</div>
+
+### Data Flow
+1. **Client Interaction**: User uploads resume via Next.js frontend.
+2. **Serverless Processing**: AWS Amplify Lambda function processes the PDF.
+3. **AI Evaluation**: LangChain orchestrates the parsing and evaluation against live job market data.
+4. **Real-time Feedback**: Actionable insights are streamed back to the user's dashboard.
+
+---
+
+## Tech Stack
+
+| Category | Technology | Purpose |
+|----------|------------|---------|
+| **Frontend** | Next.js 16, Tailwind CSS | High-performance, SEO-friendly UI |
+| **Backend** | Node.js (Serverless) | Scalable API routes |
+| **AI/LLM** | OpenAI API, LangChain | Orchestration and text generation |
+| **Database** | PostgreSQL | Persistent user profiles and history |
+| **Deployment**| AWS Amplify | CI/CD and edge delivery |
+
+---
+
+## Project Structure
+
+```bash
+saarthi/
+ ┣ app/            # Next.js App Router
+ ┣ components/     # UI Components (Dashboards, Forms)
+ ┣ lib/            # AI Prompts and Utilities
+ ┣ actions/        # Server Actions for DB mutations
+ ┗ public/         # Static Assets
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Installation Guide
 
-- **Framework**: [Next.js 16](https://nextjs.org/) (React 19, TypeScript)
-- **Styling**: Tailwind CSS, Framer Motion
-- **Database**: Neon (PostgreSQL)
-- **ORM**: Drizzle
-- **Auth**: [Clerk](https://clerk.dev/)
-- **AI**: Groq (Primary), AWS Bedrock (Course Synthesis)
-- **Monitoring**: Inngest
+### 1. Prerequisites
+- Node.js (v18+)
 
-### SDLC & Security Integration
-- **DDoS/Rate Limiting Middleware:** Next.js edge-based map ip tracker to defend API routes from programmatic spam.
-- **Strict Parsing:** Input sanitisation across all components enforced prior to database writes.
-- **Workflow Security via AWS Amplify:** Containerized edge CI/CD builds validating all security artifacts pre-deployment.
+### 2. Clone & Install
+```bash
+git clone https://github.com/knoxiboy/Saarthi.git
+cd Saarthi
+npm install
+```
 
----
-
-## 🚀 Installation & Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/knoxiboy/Saarthi.git
-   cd saarthi
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables**
-   Create a `.env` file from the instructions in [Setup Guide](requirements.md#4-technical-constraints).
-
-4. **Initialize Database**
-   ```bash
-   npx drizzle-kit push
-   ```
-
-5. **Run Development Server**
-   ```bash
-   npm run dev
-   ```
+### 3. Run Development Server
+```bash
+npm run dev
+```
 
 ---
 
-## 📄 License
-Licensed under the MIT License. See `LICENSE` for more information.
+## Environment Variables
+
+| Variable | Description | Required |
+| -------- | ----------- | -------- |
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `OPENAI_API_KEY` | LLM Access | Yes |
+| `NEXT_PUBLIC_AWS_REGION` | AWS Config | Yes |
+
+---
+
+## AI/LLM Pipeline (Crucial)
+
+Saarthi’s AI is not a generic wrapper. It uses a **Multi-Agent Orchestration** approach:
+1. **The Critic Agent**: Analyzes the resume for weak verbs, missing metrics, and formatting issues.
+2. **The Optimizer Agent**: Rewrites bullet points to maximize impact (Action + Context + Result format).
+3. **The ATS Agent**: Simulates a corporate ATS to provide a final "match score" against a specific job description.
+
+This pipeline ensures high-fidelity, highly reliable outputs.
+
+---
+
+## Performance Optimization
+
+- **Streaming Responses**: AI feedback is streamed token-by-token to ensure the UI feels lightning fast.
+- **Server Components**: Heavy rendering is pushed to the server, keeping the client bundle tiny.
+
+---
+
+## Roadmap
+
+- [x] Neural Resume Architect MVP
+- [x] AI Mentorship Chat
+- [ ] Voice-based Mock Interviews
+- [ ] Direct LinkedIn Profile Sync
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+<div align="center">
+<i>Empowering your career, one byte at a time.</i>
+</div>
